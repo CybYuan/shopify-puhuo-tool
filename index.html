@@ -31,13 +31,16 @@
 
     <div class="max-w-3xl mx-auto px-4 py-8">
         <!-- Header -->
-        <header class="mb-8 flex justify-between items-start">
+        <header class="mb-8 flex justify-between items-center">
             <div>
                 <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
                     <i class="fas fa-bolt-lightning text-amber-500"></i> Shopify Content Pro
                 </h1>
-                <p class="text-slate-500 text-sm mt-1">上传截图，AI 自动生成高转化率 SEO 标题、文案及 UGC 买家秀图片</p>
+                <p class="text-slate-500 text-sm mt-1">AI 驱动的高转化率 SEO 文案及 UGC 生成工具</p>
             </div>
+            <button onclick="openSettingsModal()" class="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
+                <i class="fas fa-cog text-xl"></i>
+            </button>
         </header>
 
         <!-- Input Section -->
@@ -64,7 +67,7 @@
 
                 <button id="generateBtn" class="w-full bg-slate-900 hover:bg-black text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                     <i class="fas fa-sparkles"></i>
-                    <span>开始生成商品内容</span>
+                    <span>开始生成商品文案 (Gemini)</span>
                 </button>
             </div>
         </div>
@@ -103,7 +106,9 @@
                         <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Consistent Buyer Show Gallery</h3>
                         <p class="text-[9px] text-slate-400 italic">Style: Amateur iPhone / Image-to-Image Consistency</p>
                     </div>
-                    <button id="generateUgcBtn" class="px-5 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-full hover:bg-indigo-700 transition-all shadow-md flex items-center gap-2"><i class="fas fa-camera"></i> Generate UGC Photos</button>
+                    <button id="generateUgcBtn" class="px-5 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-full hover:bg-indigo-700 transition-all shadow-md flex items-center gap-2">
+                        <i class="fas fa-camera"></i> Generate UGC Photos (Nano Banana)
+                    </button>
                 </div>
                 <div id="ugcGrid" class="grid grid-cols-2 md:grid-cols-5 gap-3"></div>
                 <p id="ugcStatus" class="text-[10px] text-slate-400 mt-3 text-center hidden italic">AI 正在根据原图生成高真实感买家秀...</p>
@@ -116,7 +121,35 @@
         </div>
     </div>
 
-    <!-- Edit Modal -->
+    <!-- API Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden modal-enter">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                <h4 class="font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-key text-indigo-500"></i> API 配置
+                </h4>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Gemini API Key (文案生成)</label>
+                    <input id="geminiKeyInput" type="password" placeholder="输入 Gemini API Key" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Nano Banana API Key (图片生成)</label>
+                    <input id="nanoKeyInput" type="password" placeholder="输入 Nano Banana API Key" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                    <p class="text-[10px] text-slate-400 mt-1 italic">通常与 Gemini Key 相同，除非使用独立通道</p>
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 flex justify-end gap-3">
+                <button onclick="saveSettings()" class="w-full py-3 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-black transition-all">
+                    保存设置
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- UGC Edit Modal -->
     <div id="editModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden modal-enter">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center">
@@ -145,9 +178,9 @@
     </div>
 
     <script>
-        // --- 核心配置 ---
-        // 这里的 API Key 会被优先使用
-        const apiKey = "AIzaSyB4qLYoORSN3HlX0YFvgNd38DzBOS0PtMI";
+        // --- 初始化状态 ---
+        let textApiKey = localStorage.getItem('shopify_pro_gemini_key') || "AIzaSyB4qLYoORSN3HlX0YFvgNd38DzBOS0PtMI";
+        let imageApiKey = localStorage.getItem('shopify_pro_nano_key') || "AIzaSyB4qLYoORSN3HlX0YFvgNd38DzBOS0PtMI";
         
         const rawInput = document.getElementById('rawInput');
         const imageInput = document.getElementById('imageInput');
@@ -157,6 +190,11 @@
         const output = document.getElementById('output');
         const loading = document.getElementById('loading');
         const ugcGrid = document.getElementById('ugcGrid');
+        
+        const settingsModal = document.getElementById('settingsModal');
+        const geminiKeyInput = document.getElementById('geminiKeyInput');
+        const nanoKeyInput = document.getElementById('nanoKeyInput');
+
         const editModal = document.getElementById('editModal');
         const editPromptArea = document.getElementById('editPromptArea');
         const suggestionBox = document.getElementById('suggestionBox');
@@ -165,6 +203,23 @@
         let uploadedImages = [];
         let ugcPrompts = [];
         let currentEditIndex = null;
+
+        // --- 设置管理 ---
+        function openSettingsModal() {
+            geminiKeyInput.value = textApiKey;
+            nanoKeyInput.value = imageApiKey;
+            settingsModal.classList.remove('hidden');
+        }
+
+        function closeSettingsModal() { settingsModal.classList.add('hidden'); }
+
+        function saveSettings() {
+            textApiKey = geminiKeyInput.value.trim();
+            imageApiKey = nanoKeyInput.value.trim();
+            localStorage.setItem('shopify_pro_gemini_key', textApiKey);
+            localStorage.setItem('shopify_pro_nano_key', imageApiKey);
+            closeSettingsModal();
+        }
 
         // --- 图片处理 ---
         function processFile(file) {
@@ -227,10 +282,7 @@ JSON structure:
 
         async function startGeneration() {
             if (uploadedImages.length === 0) return;
-            if (!apiKey) {
-                alert("API Key 缺失，请检查代码。");
-                return;
-            }
+            if (!textApiKey) { openSettingsModal(); return; }
 
             generateBtn.disabled = true;
             loading.classList.remove('hidden');
@@ -240,7 +292,7 @@ JSON structure:
             uploadedImages.forEach(img => parts.push({ inlineData: { mimeType: img.mimeType, data: img.base64 } }));
 
             try {
-                const data = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                const data = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${textApiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -255,7 +307,7 @@ JSON structure:
                 renderResult(result);
             } catch (err) { 
                 console.error(err);
-                alert("生成失败: " + err.message);
+                alert("文案生成失败: " + err.message);
             } finally {
                 generateBtn.disabled = false;
                 loading.classList.add('hidden');
@@ -288,10 +340,11 @@ JSON structure:
             `).join('');
         }
 
-        // --- UGC 生成 ---
+        // --- UGC 生成 (使用 Nano Banana API Key) ---
         async function generateSingleImage(index, customPrompt = null) {
             const card = document.getElementById(`ugc-card-${index}`);
-            if (!card || uploadedImages.length === 0 || !apiKey) return;
+            if (!card || uploadedImages.length === 0) return;
+            if (!imageApiKey) { openSettingsModal(); return; }
 
             const promptText = customPrompt || ugcPrompts[index].prompt;
             card.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-slate-50 animate-pulse"><i class="fas fa-spinner fa-spin text-slate-300"></i></div>`;
@@ -299,8 +352,7 @@ JSON structure:
             const baseImg = uploadedImages[0];
 
             try {
-                // 使用图片编辑模型进行 Image-to-Image 转换
-                const res = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`, {
+                const res = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${imageApiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -352,7 +404,7 @@ JSON structure:
                 const parts = [{ text: `Based on the source image, how can I improve this prompt: "${ugcPrompts[index].prompt}" to get better consistency?` }];
                 uploadedImages.forEach(img => parts.push({ inlineData: { mimeType: img.mimeType, data: img.base64 } }));
 
-                const data = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                const data = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${textApiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contents: [{ parts }] })
