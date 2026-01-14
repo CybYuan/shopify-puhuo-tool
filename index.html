@@ -17,7 +17,6 @@
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .paste-active { border-color: #6366f1; background-color: #f5f3ff; }
         
         .image-grid-item { aspect-ratio: 3/4; overflow: hidden; position: relative; border-radius: 12px; background: #f1f5f9; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
         .image-grid-item img { width: 100%; height: 100%; object-fit: cover; }
@@ -35,9 +34,9 @@
         <header class="mb-8 flex justify-between items-start">
             <div>
                 <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fas fa-bolt-lightning text-amber-500"></i> Shopify Content Pro (Direct Access)
+                    <i class="fas fa-bolt-lightning text-amber-500"></i> Shopify Content Pro
                 </h1>
-                <p class="text-slate-500 text-sm mt-1">团队版：无需配置，直接上传截图开始生成</p>
+                <p class="text-slate-500 text-sm mt-1">上传截图，AI 自动生成高转化率 SEO 标题、文案及 UGC 买家秀图片</p>
             </div>
         </header>
 
@@ -50,7 +49,7 @@
                         <label for="imageInput" class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-all group">
                             <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4" id="uploadPlaceholder">
                                 <i class="fas fa-images text-3xl text-slate-400 group-hover:text-indigo-500 mb-2 transition-colors"></i>
-                                <p class="text-sm text-slate-500">Click to upload or press Ctrl+V to paste</p>
+                                <p class="text-sm text-slate-500">点击上传或直接 Ctrl+V 粘贴图片</p>
                             </div>
                             <input id="imageInput" type="file" class="hidden" accept="image/jpeg, image/png" multiple />
                         </label>
@@ -59,13 +58,13 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">2. 补充说明 (Optional Text Info)</label>
-                    <textarea id="rawInput" rows="2" placeholder="Add brand name, specific fabric % or size tips..." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"></textarea>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">2. 补充说明 (可选)</label>
+                    <textarea id="rawInput" rows="2" placeholder="补充品牌名、具体成分或尺寸建议..." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"></textarea>
                 </div>
 
                 <button id="generateBtn" class="w-full bg-slate-900 hover:bg-black text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                     <i class="fas fa-sparkles"></i>
-                    <span>Generate Standard Content</span>
+                    <span>开始生成商品内容</span>
                 </button>
             </div>
         </div>
@@ -107,7 +106,7 @@
                     <button id="generateUgcBtn" class="px-5 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-full hover:bg-indigo-700 transition-all shadow-md flex items-center gap-2"><i class="fas fa-camera"></i> Generate UGC Photos</button>
                 </div>
                 <div id="ugcGrid" class="grid grid-cols-2 md:grid-cols-5 gap-3"></div>
-                <p id="ugcStatus" class="text-[10px] text-slate-400 mt-3 text-center hidden italic">Nano Banana is processing your reference image...</p>
+                <p id="ugcStatus" class="text-[10px] text-slate-400 mt-3 text-center hidden italic">AI 正在根据原图生成高真实感买家秀...</p>
             </section>
 
             <section>
@@ -121,15 +120,15 @@
     <div id="editModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden modal-enter">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-                <h4 class="font-bold text-slate-800">Edit UGC Prompt</h4>
+                <h4 class="font-bold text-slate-800">编辑 UGC 提示词</h4>
                 <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-6 space-y-6">
                 <div class="bg-amber-50 rounded-xl p-4 border border-amber-100">
                     <h5 class="text-[10px] font-bold text-amber-700 uppercase mb-2 flex items-center gap-1">
-                        <i class="fas fa-lightbulb"></i> Consistency Analysis
+                        <i class="fas fa-lightbulb"></i> 一致性建议
                     </h5>
-                    <div id="suggestionBox" class="text-xs text-amber-900 leading-relaxed italic">Analyzing...</div>
+                    <div id="suggestionBox" class="text-xs text-amber-900 leading-relaxed italic">分析中...</div>
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2">Prompt Editor</label>
@@ -137,25 +136,18 @@
                 </div>
             </div>
             <div class="p-4 bg-slate-50 flex justify-end gap-3">
-                <button onclick="closeEditModal()" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800">Cancel</button>
+                <button onclick="closeEditModal()" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800">取消</button>
                 <button id="regenerateSingleBtn" class="px-6 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all flex items-center gap-2">
-                    <i class="fas fa-sync-alt"></i> Regenerate
+                    <i class="fas fa-sync-alt"></i> 重新生成
                 </button>
             </div>
         </div>
     </div>
 
     <script>
-        /**
-         * ==========================================
-         * ⚠️ 重要配置：在此处填写你的 API KEY
-         * ==========================================
-         */
-        const MY_SECRET_API_KEY = "AIzaSyB4qLYoORSN3HlX0YFvgNd38DzBOS0PtMI";
-        
-        let activeApiKey = MY_SECRET_API_KEY !== "AIzaSyB4qLYoORSN3HlX0YFvgNd38DzBOS0PtMI" 
-            ? MY_SECRET_API_KEY 
-            : (typeof __api_key !== 'undefined' ? "" : (localStorage.getItem('gemini_api_key') || ""));
+        // --- 核心配置 ---
+        // 这里的 API Key 会被优先使用
+        const apiKey = "AIzaSyB4qLYoORSN3HlX0YFvgNd38DzBOS0PtMI";
         
         const rawInput = document.getElementById('rawInput');
         const imageInput = document.getElementById('imageInput');
@@ -165,7 +157,6 @@
         const output = document.getElementById('output');
         const loading = document.getElementById('loading');
         const ugcGrid = document.getElementById('ugcGrid');
-        
         const editModal = document.getElementById('editModal');
         const editPromptArea = document.getElementById('editPromptArea');
         const suggestionBox = document.getElementById('suggestionBox');
@@ -175,7 +166,7 @@
         let ugcPrompts = [];
         let currentEditIndex = null;
 
-        // --- File Logic ---
+        // --- 图片处理 ---
         function processFile(file) {
             if (!file || !file.type.startsWith('image/')) return;
             const reader = new FileReader();
@@ -206,37 +197,26 @@
         }
         function removeImage(idx) { uploadedImages.splice(idx, 1); updateImagePreviews(); }
 
-        const systemPrompt = `You are a high-end Shopify Global Copywriter.
-Analyze the Taobao screenshot and generate content ONLY IN ENGLISH.
+        const systemPrompt = `You are a high-end Shopify Global Copywriter. Analyze the provided product images and generate English content ONLY.
 
-MANDATORY Product Description Structure:
-The 'description' field MUST follow this exact structure:
-1. [A detailed narrative paragraph focusing on the silhouette, drape, specific design details like cuffs, sleeves, neckline, and buttons, and the overall aesthetic effect.]
-   - **IMPORTANT**: Automatically wrap the most important CRO information in <b> tags to enhance scannability.
-2. [A line break]
-3. Fabric: [Inferred material composition]
-4. Model info: [Height, Weight, and Size worn, strictly extracted or inferred from the image.]
-
-UGC Prompt Strategy:
-- Generate 10 prompts for 'gemini-2.5-flash-image-preview'.
-- Style: Amateur iPhone buyer-show (messy room, natural light, mirror selfie).
-
-JSON ONLY:
+JSON structure:
 {
   "seo": { "title": "...", "description": "..." },
-  "titles": [{"label": "...", "text": "..."}],
-  "description": "...",
-  "colors": [{"cn": "...", "en": "..."}],
-  "ugc_prompts": [{"ethnicity": "...", "prompt": "..."}]
+  "titles": [{"label": "Fashionable/SEO/Minimalist", "text": "..."}],
+  "description": "A detailed paragraph with <b>important tags</b>. \\n\\nFabric: ...\\nModel info: ...",
+  "colors": [{"en": "..."}],
+  "ugc_prompts": [{"ethnicity": "Western/Asian/etc", "prompt": "A detailed image generation prompt focusing on amateur iPhone selfie style, mirror selfie, natural lighting, consistent with source clothing."}]
 }`;
 
+        // --- 网络请求 ---
         async function fetchWithBackoff(url, options, retries = 5) {
             let delay = 1000;
             for (let i = 0; i < retries; i++) {
                 try {
                     const res = await fetch(url, options);
                     if (res.ok) return await res.json();
-                    throw new Error(res.status);
+                    const errData = await res.json();
+                    throw new Error(errData.error?.message || res.status);
                 } catch (e) {
                     if (i === retries - 1) throw e;
                     await new Promise(r => setTimeout(r, delay));
@@ -247,19 +227,20 @@ JSON ONLY:
 
         async function startGeneration() {
             if (uploadedImages.length === 0) return;
-            if (!activeApiKey || activeApiKey.includes("在此处粘贴")) {
-                alert("Please add your Gemini API Key in the code first.");
+            if (!apiKey) {
+                alert("API Key 缺失，请检查代码。");
                 return;
             }
 
             generateBtn.disabled = true;
             loading.classList.remove('hidden');
             output.classList.add('hidden');
-            const parts = [{ text: rawInput.value.trim() }];
+            
+            const parts = [{ text: rawInput.value.trim() || "Analyze this product." }];
             uploadedImages.forEach(img => parts.push({ inlineData: { mimeType: img.mimeType, data: img.base64 } }));
 
             try {
-                const data = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeApiKey}`, {
+                const data = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -268,12 +249,13 @@ JSON ONLY:
                         generationConfig: { responseMimeType: "application/json" }
                     })
                 });
+                
                 const result = JSON.parse(data.candidates[0].content.parts[0].text);
                 ugcPrompts = result.ugc_prompts || [];
                 renderResult(result);
             } catch (err) { 
                 console.error(err);
-                alert("Generation failed. Check API key and quota.");
+                alert("生成失败: " + err.message);
             } finally {
                 generateBtn.disabled = false;
                 loading.classList.add('hidden');
@@ -306,24 +288,26 @@ JSON ONLY:
             `).join('');
         }
 
+        // --- UGC 生成 ---
         async function generateSingleImage(index, customPrompt = null) {
             const card = document.getElementById(`ugc-card-${index}`);
-            if (!card || uploadedImages.length === 0 || !activeApiKey) return;
+            if (!card || uploadedImages.length === 0 || !apiKey) return;
 
-            const prompt = customPrompt || ugcPrompts[index].prompt;
+            const promptText = customPrompt || ugcPrompts[index].prompt;
             card.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-slate-50 animate-pulse"><i class="fas fa-spinner fa-spin text-slate-300"></i></div>`;
 
             const baseImg = uploadedImages[0];
 
             try {
-                const res = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${activeApiKey}`, {
+                // 使用图片编辑模型进行 Image-to-Image 转换
+                const res = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{ 
                             parts: [
                                 { inlineData: { mimeType: baseImg.mimeType, data: baseImg.base64 } },
-                                { text: `Transform this source product into a real amateur iPhone buyer-show selfie: ${prompt}. Maintain strict consistency with the clothing's color, texture, and silhouette from the provided image. Unfiltered, casual lighting.` }
+                                { text: `Transform this source clothing into a high-quality buyer-show photo. ${promptText}. Ensure the clothing design, color, and fabric texture remain 100% consistent with the reference image. Real person, natural environment.` }
                             ] 
                         }],
                         generationConfig: { responseModalities: ["IMAGE"] }
@@ -336,51 +320,49 @@ JSON ONLY:
                         <img src="data:image/png;base64,${base64}" alt="UGC">
                         <div class="image-overlay">
                             <button onclick="openEditModal(${index})" class="bg-white/90 text-slate-900 px-4 py-2 rounded-full text-xs font-bold shadow-lg hover:bg-white transition-all">
-                                <i class="fas fa-edit mr-1"></i> Edit
+                                <i class="fas fa-edit mr-1"></i> 编辑
                             </button>
                         </div>
                     `;
                 }
-            } catch (e) { card.innerHTML = `<div class="w-full h-full flex items-center justify-center text-red-200"><i class="fas fa-times-circle"></i></div>`; }
+            } catch (e) { 
+                card.innerHTML = `<div class="w-full h-full flex items-center justify-center text-red-300 text-[8px] px-2 text-center">${e.message}</div>`; 
+            }
         }
 
         async function generateAllUgc() {
             if (!ugcPrompts.length) return;
             generateUgcBtn.disabled = true;
             const ugcStatus = document.getElementById('ugcStatus');
-            if (ugcStatus) ugcStatus.classList.remove('hidden');
+            ugcStatus.classList.remove('hidden');
             for (let i = 0; i < ugcPrompts.length; i++) {
                 await generateSingleImage(i);
             }
-            if (ugcStatus) ugcStatus.innerText = "Buyer-show generation complete.";
+            ugcStatus.innerText = "生成完成！";
             generateUgcBtn.disabled = false;
         }
 
         async function openEditModal(index) {
-            if (index === null || !ugcPrompts[index] || !activeApiKey) return;
             currentEditIndex = index;
             editModal.classList.remove('hidden');
             editPromptArea.value = ugcPrompts[index].prompt;
-            suggestionBox.innerHTML = `Analyzing consistency...`;
+            suggestionBox.innerHTML = `正在分析原图一致性...`;
             
             try {
-                const parts = [
-                    { text: `Analyze the source image and this prompt: "${ugcPrompts[index].prompt}". 
-                    Give 3 short advice to ensure the AI uses the EXACT clothing from the source image.` }
-                ];
+                const parts = [{ text: `Based on the source image, how can I improve this prompt: "${ugcPrompts[index].prompt}" to get better consistency?` }];
                 uploadedImages.forEach(img => parts.push({ inlineData: { mimeType: img.mimeType, data: img.base64 } }));
 
-                const data = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeApiKey}`, {
+                const data = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contents: [{ parts }] })
                 });
 
                 suggestionBox.innerText = data.candidates[0].content.parts[0].text;
-            } catch (err) { suggestionBox.innerText = "Error fetching consistency tips."; }
+            } catch (err) { suggestionBox.innerText = "无法获取建议。"; }
         }
 
-        function closeEditModal() { editModal.classList.add('hidden'); currentEditIndex = null; }
+        function closeEditModal() { editModal.classList.add('hidden'); }
 
         regenerateSingleBtn.onclick = async () => {
             if (currentEditIndex === null) return;
