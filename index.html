@@ -3,334 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopify CRO, SEO & Image-Based UGC Pro</title>
+    <title>Shopify AI Content Pro - Team Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .card { background: white; border-radius: 1rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
         .loading-shimmer {
-            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
         }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        .image-grid-item { aspect-ratio: 3/4; overflow: hidden; position: relative; border-radius: 12px; background: #f1f5f9; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .image-grid-item { aspect-ratio: 3/4; overflow: hidden; position: relative; border-radius: 0.75rem; background: #f9fafb; }
         .image-grid-item img { width: 100%; height: 100%; object-fit: cover; }
-        .image-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+        .image-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
         .image-grid-item:hover .image-overlay { opacity: 1; }
-        
-        .translation-block { font-size: 0.75rem; color: #64748b; margin-top: 0.25rem; font-style: italic; border-top: 1px dashed #e2e8f0; padding-top: 0.25rem; }
     </style>
 </head>
 <body class="text-slate-900 pb-20">
 
-    <div class="max-w-3xl mx-auto px-4 py-8">
-        <!-- Header -->
-        <header class="mb-8 flex justify-between items-start">
+    <div class="max-w-4xl mx-auto px-4 py-6">
+        <!-- Top Navigation / Settings -->
+        <header class="flex justify-between items-center mb-8">
             <div>
                 <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fas fa-bolt-lightning text-amber-500"></i> Shopify Content Pro
+                    <i class="fas fa-rocket text-indigo-600"></i> Shopify Content Pro
                 </h1>
-                <p class="text-slate-500 text-sm mt-1">上传截图，自动生成高转化描述与双语对照</p>
+                <p class="text-slate-500 text-xs">团队协作版 · 支持双语对照与一致性 UGC 生成</p>
             </div>
+            <button onclick="toggleSettings()" class="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+                <i class="fas fa-cog text-xl"></i>
+            </button>
         </header>
 
-        <!-- Input Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">1. 上传或粘贴截图 (Upload/Paste Screenshots)</label>
+        <!-- API Settings Panel (Hidden by default) -->
+        <div id="settingsPanel" class="hidden mb-6 p-6 card border-indigo-100 bg-indigo-50/50">
+            <h3 class="text-sm font-bold text-indigo-900 mb-3 flex items-center gap-2">
+                <i class="fas fa-key"></i> API 配置 (存储在本地浏览器)
+            </h3>
+            <div class="flex gap-2">
+                <input id="apiKeyInput" type="password" placeholder="输入您的 Gemini API Key..." class="flex-1 px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                <button onclick="saveSettings()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700">保存</button>
+            </div>
+            <p class="mt-2 text-[10px] text-indigo-500 italic">注：您的 API Key 不会上传到服务器，仅在当前浏览器中有效。</p>
+        </div>
+
+        <!-- Main Input -->
+        <div class="card p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <label class="block text-sm font-bold text-slate-700">1. 产品视觉素材</label>
                     <div id="dropZone" class="flex items-center justify-center w-full">
-                        <label for="imageInput" class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-all group">
+                        <label for="imageInput" class="flex flex-col items-center justify-center w-full h-44 border-2 border-slate-200 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-all group">
                             <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4" id="uploadPlaceholder">
-                                <i class="fas fa-images text-3xl text-slate-400 group-hover:text-indigo-500 mb-2 transition-colors"></i>
-                                <p class="text-sm text-slate-500">点击上传或直接 Ctrl+V 粘贴图片</p>
+                                <i class="fas fa-cloud-upload-alt text-3xl text-slate-300 group-hover:text-indigo-500 mb-2 transition-colors"></i>
+                                <p class="text-xs text-slate-400 font-medium">点击上传、拖入或粘贴截图</p>
                             </div>
-                            <input id="imageInput" type="file" class="hidden" accept="image/jpeg, image/png" multiple />
+                            <input id="imageInput" type="file" class="hidden" accept="image/*" multiple />
                         </label>
                     </div>
-                    <div id="imagePreviews" class="flex gap-2 mt-2 overflow-x-auto no-scrollbar py-1"></div>
+                    <div id="imagePreviews" class="flex gap-2 overflow-x-auto no-scrollbar py-1"></div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">2. 补充说明 (可选)</label>
-                    <textarea id="rawInput" rows="2" placeholder="补充品牌名、具体成分或尺寸建议..." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"></textarea>
+                <div class="space-y-4">
+                    <label class="block text-sm font-bold text-slate-700">2. 补充需求 (Prompt Notes)</label>
+                    <textarea id="rawInput" rows="5" placeholder="例如：
+- 品牌名: UrbanLoft
+- 面料: 100% 重磅精梳棉
+- 卖点: 显瘦，适合梨形身材" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm leading-relaxed"></textarea>
+                    
+                    <button id="generateBtn" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl shadow-lg shadow-slate-200 transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-sparkles"></i>
+                        <span>生成全套双语方案</span>
+                    </button>
                 </div>
+            </div>
+        </div>
 
-                <button id="generateBtn" class="w-full bg-slate-900 hover:bg-black text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-                    <i class="fas fa-sparkles"></i>
-                    <span>开始分析并生成双语内容</span>
+        <!-- Error & Loading -->
+        <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm flex items-center gap-2">
+            <i class="fas fa-exclamation-circle"></i><span id="errorText"></span>
+        </div>
+        <div id="loading" class="hidden space-y-6">
+            <div class="loading-shimmer h-32 rounded-xl"></div>
+            <div class="loading-shimmer h-64 rounded-xl"></div>
+        </div>
+
+        <!-- Result Output -->
+        <div id="output" class="hidden space-y-8">
+            <!-- Action Bar -->
+            <div class="flex justify-end gap-3">
+                <button onclick="exportData()" class="text-xs font-bold text-slate-500 hover:text-indigo-600 flex items-center gap-1">
+                    <i class="fas fa-file-export"></i> 导出 JSON
                 </button>
             </div>
-        </div>
 
-        <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm"><i class="fas fa-exclamation-circle mr-2"></i><span id="errorText"></span></div>
-        <div id="loading" class="hidden space-y-4"><div class="loading-shimmer h-40 rounded-2xl w-full"></div><div class="loading-shimmer h-60 rounded-2xl w-full"></div></div>
-
-        <!-- Output Section -->
-        <div id="output" class="hidden space-y-8">
-            <!-- SEO -->
-            <section class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 shadow-sm">
-                <h3 class="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-4 flex items-center gap-2"><i class="fas fa-search"></i> SEO English Meta (With Translation)</h3>
-                <div class="space-y-4">
+            <!-- SEO Block -->
+            <section class="card overflow-hidden border-indigo-100">
+                <div class="bg-indigo-600 px-6 py-3 flex justify-between items-center">
+                    <h3 class="text-xs font-black text-white uppercase tracking-tighter">SEO Meta Tags</h3>
+                    <button onclick="copyElementText('seoEnContainer', this)" class="text-[10px] bg-white/20 text-white px-2 py-1 rounded hover:bg-white/30 transition-colors">Copy English</button>
+                </div>
+                <div class="p-6 space-y-4" id="seoEnContainer">
                     <div>
-                        <label class="text-[10px] font-bold text-indigo-900/40 uppercase block mb-1">SEO Title</label>
-                        <input id="seoTitle" readonly class="w-full bg-white border border-indigo-200 rounded-lg px-3 py-2 text-sm text-slate-800 outline-none mb-1">
-                        <div id="seoTitleZh" class="text-[11px] text-slate-400 italic px-1"></div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">SEO Title</label>
+                        <div id="seoTitle" class="text-sm font-semibold text-slate-800 border-b border-slate-50 pb-2"></div>
+                        <div id="seoTitleZh" class="text-[11px] text-slate-400 mt-1 italic"></div>
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-indigo-900/40 uppercase block mb-1">Meta Description</label>
-                        <textarea id="seoDesc" readonly rows="2" class="w-full bg-white border border-indigo-200 rounded-lg px-3 py-2 text-sm text-slate-800 outline-none resize-none mb-1"></textarea>
-                        <div id="seoDescZh" class="text-[11px] text-slate-400 italic px-1 leading-snug"></div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Meta Description</label>
+                        <div id="seoDesc" class="text-sm text-slate-600 leading-snug border-b border-slate-50 pb-2"></div>
+                        <div id="seoDescZh" class="text-[11px] text-slate-400 mt-1 italic"></div>
                     </div>
                 </div>
             </section>
 
-            <section>
-                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 px-1">Shopify Display Titles</h3>
-                <div id="titleContainer" class="grid gap-3"></div>
-            </section>
+            <!-- Titles Grid -->
+            <div id="titleContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
 
             <!-- Product Description -->
-            <section>
-                <div class="flex justify-between items-center mb-4 px-1">
-                    <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Product Description</h3>
-                    <button onclick="copyElementText('descContentEn', this)" class="text-xs text-indigo-600 font-medium hover:underline">Copy English</button>
+            <section class="card overflow-hidden">
+                <div class="bg-slate-800 px-6 py-3 flex justify-between items-center">
+                    <h3 class="text-xs font-black text-white uppercase tracking-tighter">Product Description</h3>
+                    <button onclick="copyElementText('descFullEn', this)" class="text-[10px] bg-white/20 text-white px-2 py-1 rounded hover:bg-white/30">Copy English</button>
                 </div>
-                <div class="bg-white border border-slate-200 rounded-2xl p-6 space-y-6">
-                    <div id="descContentEn" class="leading-relaxed text-slate-700 text-sm"></div>
-                    <div id="descContentZh" class="leading-relaxed text-slate-400 text-[13px] border-t border-slate-100 pt-4 italic"></div>
+                <div class="p-6">
+                    <div id="descFullEn" class="text-sm text-slate-700 leading-relaxed space-y-4"></div>
+                    <div id="descFullZh" class="mt-6 pt-6 border-t border-slate-100 text-[13px] text-slate-400 italic space-y-3"></div>
                 </div>
             </section>
 
-            <section>
-                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 px-1">Color Options</h3>
-                <div id="colorContainer" class="flex flex-wrap gap-3"></div>
-            </section>
+            <!-- Colors -->
+            <div id="colorContainer" class="flex flex-wrap gap-4"></div>
 
             <!-- UGC Gallery -->
-            <section class="border-t border-slate-200 pt-8">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex flex-col">
-                        <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Consistent Buyer Show Gallery</h3>
-                        <p class="text-[9px] text-slate-400 italic">Amateur iPhone Style / High Consistency</p>
+            <section class="pt-8 border-t border-slate-200">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-tight">Consistent UGC Photos</h3>
+                        <p class="text-[10px] text-slate-400">基于产品原图生成的买家秀图库</p>
                     </div>
-                    <button id="generateUgcBtn" class="px-5 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-full hover:bg-indigo-700 transition-all shadow-md flex items-center gap-2"><i class="fas fa-camera"></i> Generate UGC Photos</button>
+                    <button id="generateUgcBtn" class="bg-indigo-600 text-white px-6 py-2.5 rounded-full text-xs font-bold shadow-md hover:bg-indigo-700 transition-all flex items-center gap-2">
+                        <i class="fas fa-camera"></i> 生成所有买家秀
+                    </button>
                 </div>
                 <div id="ugcGrid" class="grid grid-cols-2 md:grid-cols-5 gap-3"></div>
-                <p id="ugcStatus" class="text-[10px] text-slate-400 mt-3 text-center hidden italic"></p>
+                <div id="ugcStatus" class="mt-4 text-[10px] text-slate-400 text-center italic hidden"></div>
             </section>
-        </div>
-    </div>
-
-    <!-- Edit Modal (UGC) -->
-    <div id="editModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden modal-enter">
-            <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-                <h4 class="font-bold text-slate-800">编辑 UGC 提示词</h4>
-                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="p-6 space-y-4">
-                <div class="bg-amber-50 rounded-xl p-4 border border-amber-100">
-                    <h5 class="text-[10px] font-bold text-amber-700 uppercase mb-2">Consistency Suggestion</h5>
-                    <div id="suggestionBox" class="text-xs text-amber-900 leading-relaxed italic">分析中...</div>
-                </div>
-                <textarea id="editPromptArea" rows="4" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"></textarea>
-            </div>
-            <div class="p-4 bg-slate-50 flex justify-end gap-3">
-                <button onclick="closeEditModal()" class="px-4 py-2 text-sm font-medium text-slate-600">取消</button>
-                <button id="regenerateSingleBtn" class="px-6 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl">重新生成</button>
-            </div>
         </div>
     </div>
 
     <script>
-        const apiKey = ""; 
-        const rawInput = document.getElementById('rawInput');
+        // --- State & Settings ---
+        let currentData = null;
+        let uploadedImages = [];
+        let ugcPrompts = [];
+
+        // 初始化从本地加载 API Key
+        window.onload = () => {
+            const savedKey = localStorage.getItem('gemini_api_key');
+            if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
+        };
+
+        function toggleSettings() {
+            document.getElementById('settingsPanel').classList.toggle('hidden');
+        }
+
+        function saveSettings() {
+            const val = document.getElementById('apiKeyInput').value.trim();
+            if (!val) return alert("请输入 API Key");
+            localStorage.setItem('gemini_api_key', val);
+            toggleSettings();
+            alert("API Key 已成功保存在本地环境。");
+        }
+
+        function getApiKey() {
+            return localStorage.getItem('gemini_api_key') || "";
+        }
+
+        // --- Core UI Logic ---
         const imageInput = document.getElementById('imageInput');
         const imagePreviews = document.getElementById('imagePreviews');
         const generateBtn = document.getElementById('generateBtn');
-        const generateUgcBtn = document.getElementById('generateUgcBtn');
-        const output = document.getElementById('output');
-        const loading = document.getElementById('loading');
-        const ugcGrid = document.getElementById('ugcGrid');
 
-        let uploadedImages = [];
-        let ugcPrompts = [];
-        let currentEditIndex = null;
+        imageInput.onchange = e => Array.from(e.target.files).forEach(processFile);
+        document.addEventListener('paste', e => {
+            const items = e.clipboardData.items;
+            for (const item of items) if (item.type.includes('image')) processFile(item.getAsFile());
+        });
 
-        // --- Core Instructions ---
-        const systemPrompt = `You are a professional Shopify Global Copywriter. Analyze product images and user notes to generate high-conversion content with Chinese translations.
-
-1. Product Description Guidelines:
-Strictly follow this length and structure:
-- A descriptive paragraph (approx. 50-70 words) focusing on silhouette, drape, details, and feel. 
-- Format example style: "Oversized denim shirt jacket with a relaxed, longline silhouette that drapes loosely over the hips. The body is cut straight with generous room through the torso and sleeves... A classic pointed collar frames the neckline..."
-- Sections:
-  Fabric: [Specific details separated by semicolons]
-  Model info: [Height, weight, size worn]
-
-2. JSON Response Format (STRICT):
-{
-  "seo": { 
-    "title_en": "SEO Optimized Title", 
-    "title_zh": "中文翻译",
-    "desc_en": "Meta description",
-    "desc_zh": "中文翻译"
-  },
-  "titles": [{"label": "Fashionable/SEO/Minimalist", "en": "English title", "zh": "中文翻译"}],
-  "description": {
-     "en_main": "The long descriptive paragraph...",
-     "en_fabric": "Medium-weight washed denim; pointed collar...",
-     "en_model": "158 cm, 40 kg, wears size L",
-     "zh_main": "中文描述段落...",
-     "zh_fabric": "面料中文细节...",
-     "zh_model": "模特中文信息..."
-  },
-  "colors": [{"en": "Light Blue", "zh": "浅蓝色"}],
-  "ugc_prompts": [{"ethnicity": "Western/Asian", "prompt": "Detailed English prompt for image-to-image"}]
-}`;
-
-        // --- Network Logic ---
-        async function fetchWithRetry(url, options, maxRetries = 5) {
-            const delays = [1000, 2000, 4000, 8000, 16000];
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(url, options);
-                    if (response.ok) return await response.json();
-                    const error = await response.json();
-                    if (i === maxRetries - 1) throw new Error(error.error?.message || "Request failed");
-                } catch (err) { if (i === maxRetries - 1) throw err; }
-                await new Promise(r => setTimeout(r, delays[i]));
-            }
-        }
-
-        // --- App Logic ---
-        async function startGeneration() {
-            if (uploadedImages.length === 0) return alert("请上传图片");
-            
-            generateBtn.disabled = true;
-            loading.classList.remove('hidden');
-            output.classList.add('hidden');
-            
-            const parts = [{ text: rawInput.value.trim() || "Analyze this product." }];
-            uploadedImages.forEach(img => parts.push({ inlineData: { mimeType: img.mimeType, data: img.base64 } }));
-
-            try {
-                const data = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] },
-                        generationConfig: { responseMimeType: "application/json" }
-                    })
-                });
-                
-                const result = JSON.parse(data.candidates[0].content.parts[0].text);
-                ugcPrompts = result.ugc_prompts || [];
-                renderResult(result);
-            } catch (err) { 
-                alert("生成失败: " + err.message);
-            } finally {
-                generateBtn.disabled = false;
-                loading.classList.add('hidden');
-            }
-        }
-
-        function renderResult(data) {
-            output.classList.remove('hidden');
-            
-            // SEO
-            document.getElementById('seoTitle').value = data.seo?.title_en || "";
-            document.getElementById('seoTitleZh').innerText = data.seo?.title_zh || "";
-            document.getElementById('seoDesc').value = data.seo?.desc_en || "";
-            document.getElementById('seoDescZh').innerText = data.seo?.desc_zh || "";
-            
-            // Titles
-            document.getElementById('titleContainer').innerHTML = (data.titles || []).map(t => `
-                <div class="bg-white border border-slate-200 p-4 rounded-xl">
-                    <div class="flex justify-between items-start mb-1">
-                        <div class="text-sm font-semibold text-slate-800">${t.en}</div>
-                        <span class="text-[8px] font-bold text-slate-300 uppercase">${t.label}</span>
-                    </div>
-                    <div class="text-[11px] text-slate-400 italic">${t.zh}</div>
-                </div>
-            `).join('');
-
-            // Product Description
-            const d = data.description || {};
-            document.getElementById('descContentEn').innerHTML = `
-                <p class="mb-4">${d.en_main}</p>
-                <p><b>Fabric:</b> ${d.en_fabric}</p>
-                <p><b>Model info:</b> ${d.en_model}</p>
-            `;
-            document.getElementById('descContentZh').innerHTML = `
-                <p class="mb-3">${d.zh_main}</p>
-                <p>材质: ${d.zh_fabric}</p>
-                <p>模特: ${d.zh_model}</p>
-            `;
-            
-            // Colors
-            document.getElementById('colorContainer').innerHTML = (data.colors || []).map(c => `
-                <div class="flex flex-col">
-                    <span class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700">${c.en}</span>
-                    <span class="text-[10px] text-slate-400 mt-1 text-center">${c.zh}</span>
-                </div>
-            `).join('');
-            
-            // UGC Grid Placeholder
-            ugcGrid.innerHTML = (data.ugc_prompts || []).map((p, i) => `
-                <div class="image-grid-item flex flex-col items-center justify-center border-2 border-dashed border-slate-100 text-slate-200" id="ugc-card-${i}">
-                    <i class="fas fa-portrait mb-1"></i><span class="text-[6px] uppercase">${p.ethnicity || '...'}</span>
-                </div>
-            `).join('');
-        }
-
-        // --- UGC Logic ---
-        async function generateSingleImage(index) {
-            const card = document.getElementById(`ugc-card-${index}`);
-            if (!card || uploadedImages.length === 0) return;
-
-            const promptText = ugcPrompts[index].prompt;
-            card.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-slate-50 animate-pulse"><i class="fas fa-spinner fa-spin text-slate-300 text-xl"></i></div>`;
-
-            try {
-                const res = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ 
-                            parts: [
-                                { inlineData: { mimeType: uploadedImages[0].mimeType, data: uploadedImages[0].base64 } },
-                                { text: `Transform this into a high-quality buyer photo. Style: ${promptText}. Ensure product consistency.` }
-                            ] 
-                        }],
-                        generationConfig: { responseModalities: ["IMAGE"] }
-                    })
-                });
-                
-                const base64 = res.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
-                if (base64) {
-                    card.innerHTML = `<img src="data:image/png;base64,${base64}"><div class="image-overlay"><button onclick="generateSingleImage(${index})" class="bg-white/90 p-2 rounded-full text-slate-800"><i class="fas fa-sync-alt"></i></button></div>`;
-                }
-            } catch (e) { card.innerHTML = `<div class="p-2 text-[8px] text-red-400">Error</div>`; }
-        }
-
-        async function generateAllUgc() {
-            generateUgcBtn.disabled = true;
-            document.getElementById('ugcStatus').classList.remove('hidden');
-            document.getElementById('ugcStatus').innerText = "AI 正在生成买家秀...";
-            for (let i = 0; i < ugcPrompts.length; i++) await generateSingleImage(i);
-            document.getElementById('ugcStatus').innerText = "生成完成！";
-            generateUgcBtn.disabled = false;
-        }
-
-        // --- Helper ---
         function processFile(file) {
             if (!file.type.startsWith('image/')) return;
             const reader = new FileReader();
@@ -344,29 +207,198 @@ Strictly follow this length and structure:
         function updatePreviews() {
             document.getElementById('uploadPlaceholder').classList.toggle('hidden', uploadedImages.length > 0);
             imagePreviews.innerHTML = uploadedImages.map((img, i) => `
-                <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shrink-0">
+                <div class="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-slate-100 shrink-0 shadow-sm">
                     <img src="data:${img.mimeType};base64,${img.base64}" class="w-full h-full object-cover">
-                    <button onclick="uploadedImages.splice(${i},1);updatePreviews();" class="absolute top-0 right-0 bg-red-500 text-white p-0.5 text-[8px]"><i class="fas fa-times"></i></button>
+                    <button onclick="uploadedImages.splice(${i},1);updatePreviews();" class="absolute top-0 right-0 bg-red-500 text-white w-5 h-5 flex items-center justify-center rounded-bl-lg text-[10px]">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             `).join('');
         }
 
-        document.addEventListener('paste', e => {
-            const items = e.clipboardData.items;
-            for (const item of items) if (item.type.includes('image')) processFile(item.getAsFile());
-        });
+        // --- AI Prompt Engineering ---
+        const systemPrompt = `You are a high-end Shopify Copywriter.
+Goal: Generate bilingual product content (EN/ZH) based on images.
 
-        imageInput.onchange = e => Array.from(e.target.files).forEach(processFile);
-        generateBtn.onclick = startGeneration;
-        generateUgcBtn.onclick = generateAllUgc;
+Requirement for 'Product Description':
+1. STRICTLY follow the structure:
+   - Paragraph: A vivid, narrative description (50-70 words) focusing on silhouette, drapes, and fabric feel. 
+   - Fabric Section: Key fabric features separated by semicolons.
+   - Model Info Section: Realistic size info.
+2. English Output must be professional, native-level.
+3. Chinese Output must be natural for domestic review.
 
+JSON Response:
+{
+  "seo": { "en_t": "...", "zh_t": "...", "en_d": "...", "zh_d": "..." },
+  "titles": [{"label": "Fashion/SEO", "en": "...", "zh": "..."}],
+  "desc": {
+    "en_m": "Paragraph content...",
+    "en_f": "Fabric features...",
+    "en_i": "Model info...",
+    "zh_m": "中文描述...",
+    "zh_f": "中文面料...",
+    "zh_i": "中文模特..."
+  },
+  "colors": [{"en": "...", "zh": "..."}],
+  "ugc": [{"ethnicity": "...", "prompt": "Image-to-image prompt"}]
+}`;
+
+        // --- Network Logic ---
+        async function apiCall(model, payload) {
+            const key = getApiKey();
+            if (!key) throw new Error("API Key 缺失。请点击右上角设置图标并输入您的 Gemini API Key。");
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error?.message || "网络请求失败");
+            return data;
+        }
+
+        generateBtn.onclick = async () => {
+            if (uploadedImages.length === 0) return alert("请先上传产品图片");
+            
+            generateBtn.disabled = true;
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('output').classList.add('hidden');
+            document.getElementById('errorMessage').classList.add('hidden');
+
+            const parts = [{ text: document.getElementById('rawInput').value.trim() || "Analyze this product." }];
+            uploadedImages.forEach(img => parts.push({ inlineData: { mimeType: img.mimeType, data: img.base64 } }));
+
+            try {
+                const data = await apiCall('gemini-2.5-flash-preview-09-2025', {
+                    contents: [{ parts }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: { responseMimeType: "application/json" }
+                });
+
+                const result = JSON.parse(data.candidates[0].content.parts[0].text);
+                currentData = result;
+                ugcPrompts = result.ugc || [];
+                renderResult(result);
+            } catch (err) {
+                document.getElementById('errorText').innerText = err.message;
+                document.getElementById('errorMessage').classList.remove('hidden');
+            } finally {
+                generateBtn.disabled = false;
+                document.getElementById('loading').classList.add('hidden');
+            }
+        };
+
+        function renderResult(data) {
+            document.getElementById('output').classList.remove('hidden');
+            
+            // SEO
+            document.getElementById('seoTitle').innerText = data.seo.en_t;
+            document.getElementById('seoTitleZh').innerText = data.seo.zh_t;
+            document.getElementById('seoDesc').innerText = data.seo.en_d;
+            document.getElementById('seoDescZh').innerText = data.seo.zh_d;
+
+            // Titles
+            document.getElementById('titleContainer').innerHTML = (data.titles || []).map(t => `
+                <div class="card p-4">
+                    <div class="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-1">${t.label}</div>
+                    <div class="text-sm font-bold text-slate-800">${t.en}</div>
+                    <div class="text-[11px] text-slate-400 italic mt-1">${t.zh}</div>
+                </div>
+            `).join('');
+
+            // Description
+            const d = data.desc;
+            document.getElementById('descFullEn').innerHTML = `
+                <p>${d.en_m}</p>
+                <p><b>Fabric:</b> ${d.en_f}</p>
+                <p><b>Model info:</b> ${d.en_i}</p>
+            `;
+            document.getElementById('descFullZh').innerHTML = `
+                <p>${d.zh_m}</p>
+                <p>面料: ${d.zh_f}</p>
+                <p>模特: ${d.zh_i}</p>
+            `;
+
+            // Colors
+            document.getElementById('colorContainer').innerHTML = (data.colors || []).map(c => `
+                <div class="flex flex-col items-center">
+                    <div class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-xs font-bold text-slate-700">${c.en}</div>
+                    <div class="text-[10px] text-slate-400 mt-1">${c.zh}</div>
+                </div>
+            `).join('');
+
+            // UGC Grid
+            document.getElementById('ugcGrid').innerHTML = ugcPrompts.map((p, i) => `
+                <div class="image-grid-item flex flex-col items-center justify-center border-2 border-dashed border-slate-200 text-slate-300" id="ugc-card-${i}">
+                    <i class="fas fa-user-circle text-2xl mb-1"></i>
+                    <span class="text-[8px] font-bold uppercase">${p.ethnicity}</span>
+                </div>
+            `).join('');
+        }
+
+        // --- UGC Logic ---
+        document.getElementById('generateUgcBtn').onclick = async () => {
+            const btn = document.getElementById('generateUgcBtn');
+            const status = document.getElementById('ugcStatus');
+            btn.disabled = true;
+            status.classList.remove('hidden');
+            status.innerText = "AI 正在生成高清买家秀...";
+
+            for (let i = 0; i < ugcPrompts.length; i++) {
+                const card = document.getElementById(`ugc-card-${i}`);
+                card.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-slate-50 animate-pulse"><i class="fas fa-circle-notch fa-spin text-indigo-300"></i></div>`;
+                
+                try {
+                    const res = await apiCall('gemini-2.5-flash-image-preview', {
+                        contents: [{
+                            parts: [
+                                { inlineData: { mimeType: uploadedImages[0].mimeType, data: uploadedImages[0].base64 } },
+                                { text: `Product UGC photo. Style: ${ugcPrompts[i].prompt}. Keep garment color and texture 100% consistent.` }
+                            ]
+                        }],
+                        generationConfig: { responseModalities: ["IMAGE"] }
+                    });
+                    
+                    const base64 = res.candidates[0].content.parts.find(p => p.inlineData).inlineData.data;
+                    card.innerHTML = `<img src="data:image/png;base64,${base64}">
+                        <div class="image-overlay">
+                            <button onclick="window.open(this.previousElementSibling.src)" class="text-white text-xs bg-white/20 px-3 py-1 rounded-full hover:bg-white/40">预览</button>
+                        </div>`;
+                } catch (e) {
+                    card.innerHTML = `<div class="text-[8px] text-red-300 px-2 text-center">失败</div>`;
+                }
+            }
+            status.innerText = "生成完成！";
+            btn.disabled = false;
+        };
+
+        // --- Helpers ---
         function copyElementText(id, btn) {
-            const text = document.getElementById(id).innerText;
-            const el = document.createElement('textarea'); el.value = text;
-            document.body.appendChild(el); el.select(); document.execCommand('copy');
-            document.body.removeChild(el);
-            const old = btn.innerText; btn.innerText = "Copied!";
-            setTimeout(() => btn.innerText = old, 2000);
+            const el = document.getElementById(id);
+            const text = el.innerText;
+            const temp = document.createElement('textarea');
+            temp.value = text;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            const original = btn.innerText;
+            btn.innerText = "Copied!";
+            setTimeout(() => btn.innerText = original, 2000);
+        }
+
+        function exportData() {
+            if (!currentData) return;
+            const blob = new Blob([JSON.stringify(currentData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Shopify_Content_${new Date().getTime()}.json`;
+            a.click();
         }
     </script>
 </body>
