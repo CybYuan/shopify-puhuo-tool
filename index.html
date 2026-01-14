@@ -3,177 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopify AI Content Pro - Team Edition</title>
+    <title>Shopify AI Content Pro - Dual Engine Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .card { background: white; border-radius: 1rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .card { background: white; border-radius: 1rem; border: 1px solid #e2e8f0; transition: all 0.2s; }
+        .card:hover { border-color: #cbd5e1; }
         .loading-shimmer {
-            background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
         }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        .image-grid-item { aspect-ratio: 3/4; overflow: hidden; position: relative; border-radius: 0.75rem; background: #f9fafb; }
+        .image-grid-item { aspect-ratio: 1/1; overflow: hidden; position: relative; border-radius: 0.75rem; background: #f1f5f9; border: 1px solid #e2e8f0; }
         .image-grid-item img { width: 100%; height: 100%; object-fit: cover; }
-        .image-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+        .image-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
         .image-grid-item:hover .image-overlay { opacity: 1; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="text-slate-900 pb-20">
 
-    <div class="max-w-4xl mx-auto px-4 py-6">
-        <!-- Top Navigation / Settings -->
+    <div class="max-w-5xl mx-auto px-4 py-6">
+        <!-- Header -->
         <header class="flex justify-between items-center mb-8">
             <div>
                 <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fas fa-rocket text-indigo-600"></i> Shopify Content Pro
+                    <i class="fas fa-bolt-lightning text-amber-500"></i> Shopify AI Content Pro
                 </h1>
-                <p class="text-slate-500 text-xs">团队协作版 · 支持自定义 API 中转与双语生成</p>
+                <p class="text-slate-500 text-xs font-medium">双引擎驱动：Gemini 2.5 (文案) + Nano Banana (视觉)</p>
             </div>
-            <button onclick="toggleSettings()" class="p-2 text-slate-400 hover:text-slate-600 transition-colors">
-                <i class="fas fa-cog text-xl"></i>
-            </button>
+            <div class="flex gap-2">
+                <button onclick="toggleSettings()" class="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 transition-all shadow-sm">
+                    <i class="fas fa-sliders text-lg"></i>
+                </button>
+            </div>
         </header>
 
-        <!-- API Settings Panel (Hidden by default) -->
-        <div id="settingsPanel" class="hidden mb-6 p-6 card border-indigo-100 bg-indigo-50/50">
-            <h3 class="text-sm font-bold text-indigo-900 mb-4 flex items-center gap-2">
-                <i class="fas fa-key"></i> 团队接口配置
-            </h3>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-[10px] font-bold text-indigo-400 uppercase mb-1">API Key</label>
-                    <input id="apiKeyInput" type="password" placeholder="输入您的 Gemini API Key..." class="w-full px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+        <!-- API Settings Panel -->
+        <div id="settingsPanel" class="hidden mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Text Engine Settings -->
+            <div class="p-6 card border-indigo-100 bg-indigo-50/30">
+                <h3 class="text-sm font-bold text-indigo-900 mb-4 flex items-center gap-2">
+                    <i class="fas fa-font"></i> 文案引擎 (Gemini 2.5 Flash)
+                </h3>
+                <div class="space-y-3">
+                    <input id="textApiKey" type="password" placeholder="API Key (默认环境)" class="w-full px-4 py-2 rounded-lg border border-indigo-100 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                    <input id="textApiBase" type="text" placeholder="Proxy Base URL (可选)" class="w-full px-4 py-2 rounded-lg border border-indigo-100 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                 </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-indigo-400 uppercase mb-1">API Proxy Base URL (可选)</label>
-                    <input id="apiBaseInput" type="text" placeholder="默认: https://generativelanguage.googleapis.com" class="w-full px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
-                    <p class="mt-1 text-[10px] text-indigo-400">使用第三方中转站时请填写，否则留空。</p>
+            </div>
+            <!-- Visual Engine Settings -->
+            <div class="p-6 card border-amber-100 bg-amber-50/30">
+                <h3 class="text-sm font-bold text-amber-900 mb-4 flex items-center gap-2">
+                    <i class="fas fa-image"></i> 视觉引擎 (Nano Banana)
+                </h3>
+                <div class="space-y-3">
+                    <input id="imageApiKey" type="password" placeholder="API Key (默认环境)" class="w-full px-4 py-2 rounded-lg border border-amber-100 focus:ring-2 focus:ring-amber-500 outline-none text-sm">
+                    <input id="imageApiBase" type="text" placeholder="Proxy Base URL (可选)" class="w-full px-4 py-2 rounded-lg border border-amber-100 focus:ring-2 focus:ring-amber-500 outline-none text-sm">
                 </div>
-                <button onclick="saveSettings()" class="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors">保存配置</button>
+            </div>
+            <div class="md:col-span-2">
+                <button onclick="saveSettings()" class="w-full bg-slate-900 text-white py-3 rounded-xl text-sm font-bold hover:bg-black transition-all">保存所有引擎配置</button>
             </div>
         </div>
 
-        <!-- Main Input -->
-        <div class="card p-6 mb-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-4">
-                    <label class="block text-sm font-bold text-slate-700">1. 产品视觉素材</label>
-                    <div id="dropZone" class="flex items-center justify-center w-full">
-                        <label for="imageInput" class="flex flex-col items-center justify-center w-full h-44 border-2 border-slate-200 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-all group">
-                            <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4" id="uploadPlaceholder">
-                                <i class="fas fa-cloud-upload-alt text-3xl text-slate-300 group-hover:text-indigo-500 mb-2 transition-colors"></i>
-                                <p class="text-xs text-slate-400 font-medium">点击上传、拖入或粘贴截图</p>
+        <!-- Main Workspace -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Left: Inputs -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="card p-5">
+                    <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">1. 产品视觉素材</label>
+                    <div id="dropZone" class="relative">
+                        <label for="imageInput" class="flex flex-col items-center justify-center w-full h-40 border-2 border-slate-200 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 hover:border-indigo-300 transition-all group">
+                            <div class="flex flex-col items-center justify-center text-center px-4" id="uploadPlaceholder">
+                                <i class="fas fa-images text-2xl text-slate-300 group-hover:text-indigo-500 mb-2 transition-colors"></i>
+                                <p class="text-[11px] text-slate-400 font-bold uppercase tracking-tight">点击或拖入主图</p>
                             </div>
                             <input id="imageInput" type="file" class="hidden" accept="image/*" multiple />
                         </label>
                     </div>
-                    <div id="imagePreviews" class="flex gap-2 overflow-x-auto no-scrollbar py-1"></div>
+                    <div id="imagePreviews" class="flex gap-2 overflow-x-auto no-scrollbar mt-3 pb-1"></div>
                 </div>
 
-                <div class="space-y-4">
-                    <label class="block text-sm font-bold text-slate-700">2. 补充需求 (Prompt Notes)</label>
-                    <textarea id="rawInput" rows="5" placeholder="例如：
-- 品牌名: UrbanLoft
-- 面料: 100% 重磅精梳棉
-- 卖点: 显瘦，适合梨形身材" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm leading-relaxed"></textarea>
-                    
-                    <button id="generateBtn" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl shadow-lg shadow-slate-200 transition-all flex items-center justify-center gap-2">
-                        <i class="fas fa-sparkles"></i>
-                        <span>生成全套双语方案</span>
-                    </button>
+                <div class="card p-5">
+                    <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">2. 文案微调 (Optional)</label>
+                    <textarea id="rawInput" rows="6" placeholder="品牌名、面料成分、特定风格需求..." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm leading-relaxed bg-slate-50/50"></textarea>
                 </div>
-            </div>
-        </div>
 
-        <!-- Error & Loading -->
-        <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm flex items-center gap-2">
-            <i class="fas fa-exclamation-circle"></i><span id="errorText"></span>
-        </div>
-        <div id="loading" class="hidden space-y-6">
-            <div class="loading-shimmer h-32 rounded-xl"></div>
-            <div class="loading-shimmer h-64 rounded-xl"></div>
-        </div>
-
-        <!-- Result Output -->
-        <div id="output" class="hidden space-y-8">
-            <!-- Action Bar -->
-            <div class="flex justify-end gap-3">
-                <button onclick="exportData()" class="text-xs font-bold text-slate-500 hover:text-indigo-600 flex items-center gap-1">
-                    <i class="fas fa-file-export"></i> 导出 JSON
+                <button id="generateBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-3">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    <span>分析并生成双语方案</span>
                 </button>
             </div>
 
-            <!-- SEO Block -->
-            <section class="card overflow-hidden border-indigo-100">
-                <div class="bg-indigo-600 px-6 py-3 flex justify-between items-center">
-                    <h3 class="text-xs font-black text-white uppercase tracking-tighter">SEO Meta Tags</h3>
-                    <button onclick="copyElementText('seoEnContainer', this)" class="text-[10px] bg-white/20 text-white px-2 py-1 rounded hover:bg-white/30 transition-colors">Copy English</button>
-                </div>
-                <div class="p-6 space-y-4" id="seoEnContainer">
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">SEO Title</label>
-                        <div id="seoTitle" class="text-sm font-semibold text-slate-800 border-b border-slate-50 pb-2"></div>
-                        <div id="seoTitleZh" class="text-[11px] text-slate-400 mt-1 italic"></div>
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Meta Description</label>
-                        <div id="seoDesc" class="text-sm text-slate-600 leading-snug border-b border-slate-50 pb-2"></div>
-                        <div id="seoDescZh" class="text-[11px] text-slate-400 mt-1 italic"></div>
+            <!-- Right: Outputs -->
+            <div class="lg:col-span-8 space-y-8">
+                <!-- Status/Error -->
+                <div id="errorMessage" class="hidden p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm flex items-start gap-3">
+                    <i class="fas fa-circle-exclamation mt-0.5"></i>
+                    <div class="flex-1">
+                        <p class="font-bold">引擎响应错误</p>
+                        <p id="errorText" class="text-xs mt-1 opacity-80"></p>
                     </div>
                 </div>
-            </section>
 
-            <!-- Titles Grid -->
-            <div id="titleContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-
-            <!-- Product Description -->
-            <section class="card overflow-hidden">
-                <div class="bg-slate-800 px-6 py-3 flex justify-between items-center">
-                    <h3 class="text-xs font-black text-white uppercase tracking-tighter">Product Description</h3>
-                    <button onclick="copyElementText('descFullEn', this)" class="text-[10px] bg-white/20 text-white px-2 py-1 rounded hover:bg-white/30">Copy English</button>
+                <!-- Loading State -->
+                <div id="loading" class="hidden space-y-6">
+                    <div class="loading-shimmer h-40 rounded-xl"></div>
+                    <div class="loading-shimmer h-64 rounded-xl"></div>
                 </div>
-                <div class="p-6">
-                    <div id="descFullEn" class="text-sm text-slate-700 leading-relaxed space-y-4"></div>
-                    <div id="descFullZh" class="mt-6 pt-6 border-t border-slate-100 text-[13px] text-slate-400 italic space-y-3"></div>
-                </div>
-            </section>
 
-            <!-- Colors -->
-            <div id="colorContainer" class="flex flex-wrap gap-4"></div>
-
-            <!-- UGC Gallery -->
-            <section class="pt-8 border-t border-slate-200">
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-tight">Consistent UGC Photos</h3>
-                        <p class="text-[10px] text-slate-400">基于产品原图生成的买家秀图库</p>
+                <!-- Main Content Output -->
+                <div id="output" class="hidden space-y-6">
+                    <!-- Tabs/Actions -->
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-bold text-slate-800">生成结果</h2>
+                        <button onclick="exportData()" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-indigo-600 border border-slate-200 rounded-lg bg-white flex items-center gap-2 transition-all">
+                            <i class="fas fa-download"></i> 导出 JSON
+                        </button>
                     </div>
-                    <button id="generateUgcBtn" class="bg-indigo-600 text-white px-6 py-2.5 rounded-full text-xs font-bold shadow-md hover:bg-indigo-700 transition-all flex items-center gap-2">
-                        <i class="fas fa-camera"></i> 生成所有买家秀
-                    </button>
+
+                    <!-- SEO Section -->
+                    <div class="card overflow-hidden">
+                        <div class="bg-indigo-600 px-5 py-2.5 flex justify-between items-center">
+                            <span class="text-[10px] font-black text-white uppercase tracking-tighter">SEO Optimization</span>
+                            <button onclick="copyText('seoContent')" class="text-[10px] text-white/80 hover:text-white uppercase font-bold">Copy All</button>
+                        </div>
+                        <div class="p-5 space-y-4" id="seoContent">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Meta Title</label>
+                                    <p id="seoTitle" class="text-sm font-bold text-slate-800"></p>
+                                    <p id="seoTitleZh" class="text-[11px] text-slate-400 mt-1 italic"></p>
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Meta Description</label>
+                                    <p id="seoDesc" class="text-xs text-slate-600 leading-relaxed"></p>
+                                    <p id="seoDescZh" class="text-[11px] text-slate-400 mt-1 italic"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Titles -->
+                    <div id="titleContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+
+                    <!-- Description -->
+                    <div class="card overflow-hidden">
+                        <div class="bg-slate-800 px-5 py-2.5 flex justify-between items-center">
+                            <span class="text-[10px] font-black text-white uppercase tracking-tighter">Product Story & Specs</span>
+                            <button onclick="copyText('descEn')" class="text-[10px] text-white/80 hover:text-white uppercase font-bold">Copy English</button>
+                        </div>
+                        <div class="p-6">
+                            <div id="descEn" class="text-sm text-slate-700 leading-relaxed space-y-3"></div>
+                            <div id="descZh" class="mt-6 pt-6 border-t border-slate-100 text-[13px] text-slate-400 italic space-y-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- Colors -->
+                    <div id="colorContainer" class="flex flex-wrap gap-3"></div>
+
+                    <!-- Visual UGC Section -->
+                    <div class="pt-6 border-t border-slate-200">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight">Consistent Visual UGC</h3>
+                                <p class="text-[10px] text-slate-400">由 Nano Banana 视觉引擎基于产品原图生成的买家秀图库</p>
+                            </div>
+                            <button id="generateUgcBtn" class="bg-amber-500 text-white px-5 py-2.5 rounded-full text-xs font-black shadow-lg shadow-amber-100 hover:bg-amber-600 transition-all flex items-center gap-2">
+                                <i class="fas fa-camera-retro"></i> 生成高清图库
+                            </button>
+                        </div>
+                        <div id="ugcGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"></div>
+                        <p id="ugcStatus" class="mt-4 text-[10px] text-slate-400 text-center font-medium italic hidden"></p>
+                    </div>
                 </div>
-                <div id="ugcGrid" class="grid grid-cols-2 md:grid-cols-5 gap-3"></div>
-                <div id="ugcStatus" class="mt-4 text-[10px] text-slate-400 text-center italic hidden"></div>
-            </section>
+            </div>
         </div>
     </div>
 
     <script>
-        // --- State & Settings ---
+        // --- Configuration & Initialization ---
         let currentData = null;
         let uploadedImages = [];
         let ugcPrompts = [];
+        const apiKey = ""; // 运行时注入
 
-        // 初始化加载配置
         window.onload = () => {
-            const savedKey = localStorage.getItem('gemini_api_key');
-            const savedBase = localStorage.getItem('api_base_url');
-            if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
-            if (savedBase) document.getElementById('apiBaseInput').value = savedBase;
+            const configs = ['textApiKey', 'textApiBase', 'imageApiKey', 'imageApiBase'];
+            configs.forEach(id => {
+                const saved = localStorage.getItem(id);
+                if (saved) document.getElementById(id).value = saved;
+            });
         };
 
         function toggleSettings() {
@@ -181,36 +205,53 @@
         }
 
         function saveSettings() {
-            const key = document.getElementById('apiKeyInput').value.trim();
-            const base = document.getElementById('apiBaseInput').value.trim();
-            if (!key) return alert("请输入 API Key");
-            
-            localStorage.setItem('gemini_api_key', key);
-            localStorage.setItem('api_base_url', base);
+            const configs = ['textApiKey', 'textApiBase', 'imageApiKey', 'imageApiBase'];
+            configs.forEach(id => localStorage.setItem(id, document.getElementById(id).value.trim()));
             toggleSettings();
-            alert("配置已更新！");
+            showMessage("配置已成功更新");
         }
 
-        function getApiKey() {
-            return localStorage.getItem('gemini_api_key') || "";
+        // --- Network Wrapper with Exponential Backoff ---
+        async function fetchWithRetry(url, options, maxRetries = 5) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) return await response.json();
+                    if (response.status === 429) { // Rate limit
+                        const delay = Math.pow(2, i) * 1000;
+                        await new Promise(r => setTimeout(r, delay));
+                        continue;
+                    }
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+                } catch (err) {
+                    if (i === maxRetries - 1) throw err;
+                    const delay = Math.pow(2, i) * 1000;
+                    await new Promise(r => setTimeout(r, delay));
+                }
+            }
         }
 
-        function getApiBase() {
-            let base = localStorage.getItem('api_base_url') || "https://generativelanguage.googleapis.com";
-            if (base.endsWith('/')) base = base.slice(0, -1);
-            return base;
+        // --- Engine Call Logic ---
+        async function callEngine(type, payload) {
+            const isText = type === 'text';
+            const engineKey = document.getElementById(isText ? 'textApiKey' : 'imageApiKey').value || apiKey;
+            const engineBase = document.getElementById(isText ? 'textApiBase' : 'imageApiBase').value || "https://generativelanguage.googleapis.com";
+            const model = isText ? 'gemini-2.5-flash-preview-09-2025' : 'gemini-2.5-flash-image-preview';
+            
+            const cleanBase = engineBase.endsWith('/') ? engineBase.slice(0, -1) : engineBase;
+            const url = `${cleanBase}/v1beta/models/${model}:generateContent?key=${engineKey}`;
+
+            return await fetchWithRetry(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
         }
 
-        // --- Core UI Logic ---
+        // --- File Handling ---
         const imageInput = document.getElementById('imageInput');
-        const imagePreviews = document.getElementById('imagePreviews');
-        const generateBtn = document.getElementById('generateBtn');
-
         imageInput.onchange = e => Array.from(e.target.files).forEach(processFile);
-        document.addEventListener('paste', e => {
-            const items = e.clipboardData.items;
-            for (const item of items) if (item.type.includes('image')) processFile(item.getAsFile());
-        });
 
         function processFile(file) {
             if (!file.type.startsWith('image/')) return;
@@ -224,95 +265,73 @@
 
         function updatePreviews() {
             document.getElementById('uploadPlaceholder').classList.toggle('hidden', uploadedImages.length > 0);
-            imagePreviews.innerHTML = uploadedImages.map((img, i) => `
-                <div class="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-slate-100 shrink-0 shadow-sm">
+            document.getElementById('imagePreviews').innerHTML = uploadedImages.map((img, i) => `
+                <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shrink-0 shadow-sm">
                     <img src="data:${img.mimeType};base64,${img.base64}" class="w-full h-full object-cover">
-                    <button onclick="uploadedImages.splice(${i},1);updatePreviews();" class="absolute top-0 right-0 bg-red-500 text-white w-5 h-5 flex items-center justify-center rounded-bl-lg text-[10px]">
+                    <button onclick="uploadedImages.splice(${i},1);updatePreviews();" class="absolute top-0 right-0 bg-red-500/80 text-white w-4 h-4 flex items-center justify-center text-[8px]">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
             `).join('');
         }
 
-        // --- AI Prompt Engineering ---
-        const systemPrompt = `You are a high-end Shopify Copywriter.
-Goal: Generate bilingual product content (EN/ZH) based on images.
+        // --- Main Generation Flow ---
+        document.getElementById('generateBtn').onclick = async () => {
+            if (uploadedImages.length === 0) return showMessage("请至少上传一张产品图片", "error");
 
-Requirement for 'Product Description':
-1. STRICTLY follow the structure:
-   - Paragraph: A vivid, narrative description (50-70 words) focusing on silhouette, drapes, and fabric feel. 
-   - Fabric Section: Key fabric features separated by semicolons.
-   - Model Info Section: Realistic size info.
-2. English Output must be professional, native-level.
-3. Chinese Output must be natural for domestic review.
+            const btn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loading');
+            const output = document.getElementById('output');
+            const errorBox = document.getElementById('errorMessage');
 
-JSON Response:
+            btn.disabled = true;
+            loading.classList.remove('hidden');
+            output.classList.add('hidden');
+            errorBox.classList.add('hidden');
+
+            const systemPrompt = `You are an elite Shopify product strategist.
+Goal: Create high-converting bilingual (English/Chinese) product listings.
+Deliverables: SEO meta, catchy titles, immersive descriptions, and UGC prompts.
+
+Structure for Description:
+- "The Story": Emotional hook, fit, and silhouette.
+- "The Fabric": Technical breakdown.
+- "Size Ref": Realistic model metrics.
+
+JSON OUTPUT SCHEMA:
 {
   "seo": { "en_t": "...", "zh_t": "...", "en_d": "...", "zh_d": "..." },
-  "titles": [{"label": "Fashion/SEO", "en": "...", "zh": "..."}],
-  "desc": {
-    "en_m": "Paragraph content...",
-    "en_f": "Fabric features...",
-    "en_i": "Model info...",
-    "zh_m": "中文描述...",
-    "zh_f": "中文面料...",
-    "zh_i": "中文模特..."
-  },
-  "colors": [{"en": "...", "zh": "..."}],
-  "ugc": [{"ethnicity": "...", "prompt": "Image-to-image prompt"}]
+  "titles": [{"tag": "SEO-READY", "en": "...", "zh": "..."}],
+  "desc": { "en_s": "Story...", "en_f": "Fabric...", "en_r": "Ref...", "zh_s": "...", "zh_f": "...", "zh_r": "..." },
+  "colors": [{"en": "Sandstone", "zh": "磨砂金"}],
+  "ugc": [{"scene": "Street Style", "prompt": "Outdoor street photography style..."}]
 }`;
 
-        // --- Network Logic ---
-        async function apiCall(model, payload) {
-            const key = getApiKey();
-            const base = getApiBase();
-            if (!key) throw new Error("API Key 缺失。请点击设置图标配置。");
-
-            // 拼接中转或官方地址
-            const url = `${base}/v1beta/models/${model}:generateContent?key=${key}`;
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error?.message || "网络请求失败");
-            return data;
-        }
-
-        generateBtn.onclick = async () => {
-            if (uploadedImages.length === 0) return alert("请先上传产品图片");
-            
-            generateBtn.disabled = true;
-            document.getElementById('loading').classList.remove('hidden');
-            document.getElementById('output').classList.add('hidden');
-            document.getElementById('errorMessage').classList.add('hidden');
-
-            const parts = [{ text: document.getElementById('rawInput').value.trim() || "Analyze this product." }];
+            const parts = [{ text: document.getElementById('rawInput').value.trim() || "Analyze this product in detail." }];
             uploadedImages.forEach(img => parts.push({ inlineData: { mimeType: img.mimeType, data: img.base64 } }));
 
             try {
-                const data = await apiCall('gemini-2.5-flash-preview-09-2025', {
+                const response = await callEngine('text', {
                     contents: [{ parts }],
                     systemInstruction: { parts: [{ text: systemPrompt }] },
                     generationConfig: { responseMimeType: "application/json" }
                 });
 
-                const result = JSON.parse(data.candidates[0].content.parts[0].text);
+                const rawText = response.candidates?.[0]?.content?.parts?.[0]?.text;
+                const result = JSON.parse(rawText);
                 currentData = result;
                 ugcPrompts = result.ugc || [];
-                renderResult(result);
+                renderResults(result);
             } catch (err) {
                 document.getElementById('errorText').innerText = err.message;
-                document.getElementById('errorMessage').classList.remove('hidden');
+                errorBox.classList.remove('hidden');
             } finally {
-                generateBtn.disabled = false;
-                document.getElementById('loading').classList.add('hidden');
+                btn.disabled = false;
+                loading.classList.add('hidden');
             }
         };
 
-        function renderResult(data) {
+        function renderResults(data) {
             document.getElementById('output').classList.remove('hidden');
             
             // SEO
@@ -322,93 +341,111 @@ JSON Response:
             document.getElementById('seoDescZh').innerText = data.seo.zh_d;
 
             // Titles
-            document.getElementById('titleContainer').innerHTML = (data.titles || []).map(t => `
+            document.getElementById('titleContainer').innerHTML = data.titles.map(t => `
                 <div class="card p-4">
-                    <div class="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-1">${t.label}</div>
-                    <div class="text-sm font-bold text-slate-800">${t.en}</div>
-                    <div class="text-[11px] text-slate-400 italic mt-1">${t.zh}</div>
+                    <span class="text-[8px] font-black text-indigo-400 bg-indigo-50 px-1.5 py-0.5 rounded mb-2 inline-block uppercase tracking-widest">${t.tag}</span>
+                    <h4 class="text-sm font-bold text-slate-800 leading-tight">${t.en}</h4>
+                    <p class="text-[11px] text-slate-400 italic mt-2">${t.zh}</p>
                 </div>
             `).join('');
 
             // Description
-            const d = data.desc;
-            document.getElementById('descFullEn').innerHTML = `
-                <p>${d.en_m}</p>
-                <p><b>Fabric:</b> ${d.en_f}</p>
-                <p><b>Model info:</b> ${d.en_i}</p>
+            document.getElementById('descEn').innerHTML = `
+                <p>${data.desc.en_s}</p>
+                <p><strong>Fabric:</strong> ${data.desc.en_f}</p>
+                <p><strong>Model:</strong> ${data.desc.en_r}</p>
             `;
-            document.getElementById('descFullZh').innerHTML = `
-                <p>${d.zh_m}</p>
-                <p>面料: ${d.zh_f}</p>
-                <p>模特: ${d.zh_i}</p>
+            document.getElementById('descZh').innerHTML = `
+                <p>${data.desc.zh_s}</p>
+                <p>材质: ${data.desc.zh_f}</p>
+                <p>尺码信息: ${data.desc.zh_r}</p>
             `;
 
             // Colors
-            document.getElementById('colorContainer').innerHTML = (data.colors || []).map(c => `
-                <div class="flex flex-col items-center">
-                    <div class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-xs font-bold text-slate-700">${c.en}</div>
-                    <div class="text-[10px] text-slate-400 mt-1">${c.zh}</div>
+            document.getElementById('colorContainer').innerHTML = data.colors.map(c => `
+                <div class="bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2">
+                    <span class="text-[11px] font-bold text-slate-700">${c.en}</span>
+                    <span class="text-[9px] text-slate-300">|</span>
+                    <span class="text-[10px] text-slate-400">${c.zh}</span>
                 </div>
             `).join('');
 
-            // UGC Grid
+            // UGC Grid Init
             document.getElementById('ugcGrid').innerHTML = ugcPrompts.map((p, i) => `
-                <div class="image-grid-item flex flex-col items-center justify-center border-2 border-dashed border-slate-200 text-slate-300" id="ugc-card-${i}">
-                    <i class="fas fa-user-circle text-2xl mb-1"></i>
-                    <span class="text-[8px] font-bold uppercase">${p.ethnicity}</span>
+                <div class="image-grid-item flex flex-col items-center justify-center border-dashed border-2 border-slate-100 text-slate-200" id="ugc-box-${i}">
+                    <i class="fas fa-camera text-xl mb-1"></i>
+                    <span class="text-[8px] font-black uppercase">${p.scene}</span>
                 </div>
             `).join('');
         }
 
-        // --- UGC Logic ---
+        // --- Visual Engine Logic (Nano Banana) ---
         document.getElementById('generateUgcBtn').onclick = async () => {
             const btn = document.getElementById('generateUgcBtn');
             const status = document.getElementById('ugcStatus');
             btn.disabled = true;
             status.classList.remove('hidden');
-            status.innerText = "AI 正在生成高清买家秀...";
+            status.innerText = "视觉引擎正在合成高清买家秀图片...";
+
+            const baseImg = uploadedImages[0];
 
             for (let i = 0; i < ugcPrompts.length; i++) {
-                const card = document.getElementById(`ugc-card-${i}`);
-                card.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-slate-50 animate-pulse"><i class="fas fa-circle-notch fa-spin text-indigo-300"></i></div>`;
+                const box = document.getElementById(`ugc-box-${i}`);
+                box.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center bg-slate-50 animate-pulse"><i class="fas fa-spinner fa-spin text-amber-300 mb-1"></i><span class="text-[8px] text-amber-400 uppercase font-black">Rendering</span></div>`;
                 
                 try {
-                    const res = await apiCall('gemini-2.5-flash-image-preview', {
+                    const res = await callEngine('image', {
                         contents: [{
                             parts: [
-                                { inlineData: { mimeType: uploadedImages[0].mimeType, data: uploadedImages[0].base64 } },
-                                { text: `Product UGC photo. Style: ${ugcPrompts[i].prompt}. Keep garment color and texture 100% consistent.` }
+                                { inlineData: { mimeType: baseImg.mimeType, data: baseImg.base64 } },
+                                { text: `High quality UGC/lifestyle photo. The person is wearing the exact same garment from the reference image. Style: ${ugcPrompts[i].prompt}. Photorealistic, 4k, natural lighting.` }
                             ]
                         }],
                         generationConfig: { responseModalities: ["IMAGE"] }
                     });
                     
-                    const base64 = res.candidates[0].content.parts.find(p => p.inlineData).inlineData.data;
-                    card.innerHTML = `<img src="data:image/png;base64,${base64}">
-                        <div class="image-overlay">
-                            <button onclick="window.open(this.previousElementSibling.src)" class="text-white text-xs bg-white/20 px-3 py-1 rounded-full hover:bg-white/40">预览</button>
-                        </div>`;
+                    const imgData = res.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                    if (imgData) {
+                        box.innerHTML = `
+                            <img src="data:image/png;base64,${imgData}">
+                            <div class="image-overlay">
+                                <button onclick="window.open(this.parentElement.previousElementSibling.src)" class="text-white text-[10px] font-black bg-black/40 px-3 py-1.5 rounded-full hover:bg-black/60 transition-all">PREVIEW</button>
+                            </div>
+                        `;
+                    } else {
+                        throw new Error("No image data");
+                    }
                 } catch (e) {
-                    card.innerHTML = `<div class="text-[8px] text-red-300 px-2 text-center">失败</div>`;
+                    box.innerHTML = `<div class="text-[8px] text-red-300 font-bold px-2 text-center">FAILED TO RENDER</div>`;
                 }
             }
-            status.innerText = "生成完成！";
+            status.innerText = "视觉引擎图库生成完成！";
             btn.disabled = false;
         };
 
-        // --- Helpers ---
-        function copyElementText(id, btn) {
+        // --- Utils ---
+        function showMessage(text, type = "info") {
+            // Simple message box instead of alert
+            const msg = document.createElement('div');
+            msg.className = `fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full text-xs font-bold shadow-xl z-50 transition-all transform translate-y-20 ${type === 'error' ? 'bg-red-600 text-white' : 'bg-slate-900 text-white'}`;
+            msg.innerText = text;
+            document.body.appendChild(msg);
+            setTimeout(() => { msg.classList.remove('translate-y-20'); }, 10);
+            setTimeout(() => { 
+                msg.classList.add('translate-y-20');
+                setTimeout(() => msg.remove(), 500);
+            }, 3000);
+        }
+
+        function copyText(id) {
             const el = document.getElementById(id);
-            const text = el.innerText;
-            const temp = document.createElement('textarea');
-            temp.value = text;
-            document.body.appendChild(temp);
-            temp.select();
+            const range = document.createRange();
+            range.selectNode(el);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
             document.execCommand('copy');
-            document.body.removeChild(temp);
-            const original = btn.innerText;
-            btn.innerText = "Copied!";
-            setTimeout(() => btn.innerText = original, 2000);
+            window.getSelection().removeAllRanges();
+            showMessage("文本已复制到剪贴板");
         }
 
         function exportData() {
@@ -417,7 +454,7 @@ JSON Response:
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Shopify_Content_${new Date().getTime()}.json`;
+            a.download = `Shopify_AI_Pro_${Date.now()}.json`;
             a.click();
         }
     </script>
