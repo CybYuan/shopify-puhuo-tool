@@ -31,7 +31,7 @@
                 <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
                     <i class="fas fa-rocket text-indigo-600"></i> Shopify Content Pro
                 </h1>
-                <p class="text-slate-500 text-xs">团队协作版 · 支持双语对照与一致性 UGC 生成</p>
+                <p class="text-slate-500 text-xs">团队协作版 · 支持自定义 API 中转与双语生成</p>
             </div>
             <button onclick="toggleSettings()" class="p-2 text-slate-400 hover:text-slate-600 transition-colors">
                 <i class="fas fa-cog text-xl"></i>
@@ -40,14 +40,21 @@
 
         <!-- API Settings Panel (Hidden by default) -->
         <div id="settingsPanel" class="hidden mb-6 p-6 card border-indigo-100 bg-indigo-50/50">
-            <h3 class="text-sm font-bold text-indigo-900 mb-3 flex items-center gap-2">
-                <i class="fas fa-key"></i> API 配置 (存储在本地浏览器)
+            <h3 class="text-sm font-bold text-indigo-900 mb-4 flex items-center gap-2">
+                <i class="fas fa-key"></i> 团队接口配置
             </h3>
-            <div class="flex gap-2">
-                <input id="apiKeyInput" type="password" placeholder="输入您的 Gemini API Key..." class="flex-1 px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
-                <button onclick="saveSettings()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700">保存</button>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-indigo-400 uppercase mb-1">API Key</label>
+                    <input id="apiKeyInput" type="password" placeholder="输入您的 Gemini API Key..." class="w-full px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-indigo-400 uppercase mb-1">API Proxy Base URL (可选)</label>
+                    <input id="apiBaseInput" type="text" placeholder="默认: https://generativelanguage.googleapis.com" class="w-full px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                    <p class="mt-1 text-[10px] text-indigo-400">使用第三方中转站时请填写，否则留空。</p>
+                </div>
+                <button onclick="saveSettings()" class="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors">保存配置</button>
             </div>
-            <p class="mt-2 text-[10px] text-indigo-500 italic">注：您的 API Key 不会上传到服务器，仅在当前浏览器中有效。</p>
         </div>
 
         <!-- Main Input -->
@@ -161,10 +168,12 @@
         let uploadedImages = [];
         let ugcPrompts = [];
 
-        // 初始化从本地加载 API Key
+        // 初始化加载配置
         window.onload = () => {
             const savedKey = localStorage.getItem('gemini_api_key');
+            const savedBase = localStorage.getItem('api_base_url');
             if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
+            if (savedBase) document.getElementById('apiBaseInput').value = savedBase;
         };
 
         function toggleSettings() {
@@ -172,15 +181,24 @@
         }
 
         function saveSettings() {
-            const val = document.getElementById('apiKeyInput').value.trim();
-            if (!val) return alert("请输入 API Key");
-            localStorage.setItem('gemini_api_key', val);
+            const key = document.getElementById('apiKeyInput').value.trim();
+            const base = document.getElementById('apiBaseInput').value.trim();
+            if (!key) return alert("请输入 API Key");
+            
+            localStorage.setItem('gemini_api_key', key);
+            localStorage.setItem('api_base_url', base);
             toggleSettings();
-            alert("API Key 已成功保存在本地环境。");
+            alert("配置已更新！");
         }
 
         function getApiKey() {
             return localStorage.getItem('gemini_api_key') || "";
+        }
+
+        function getApiBase() {
+            let base = localStorage.getItem('api_base_url') || "https://generativelanguage.googleapis.com";
+            if (base.endsWith('/')) base = base.slice(0, -1);
+            return base;
         }
 
         // --- Core UI Logic ---
@@ -247,9 +265,11 @@ JSON Response:
         // --- Network Logic ---
         async function apiCall(model, payload) {
             const key = getApiKey();
-            if (!key) throw new Error("API Key 缺失。请点击右上角设置图标并输入您的 Gemini API Key。");
+            const base = getApiBase();
+            if (!key) throw new Error("API Key 缺失。请点击设置图标配置。");
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+            // 拼接中转或官方地址
+            const url = `${base}/v1beta/models/${model}:generateContent?key=${key}`;
             const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
