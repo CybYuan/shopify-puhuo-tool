@@ -23,6 +23,9 @@
         .image-grid-item:hover .image-overlay { opacity: 1; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* 拖拽上传激活状态 */
+        .drop-active { border-color: #6366f1 !important; background-color: #eef2ff !important; }
     </style>
 </head>
 <body class="text-slate-900 pb-20">
@@ -76,11 +79,12 @@
             <div class="lg:col-span-4 space-y-6">
                 <div class="card p-5">
                     <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">1. 产品视觉素材</label>
-                    <div id="dropZone" class="relative">
-                        <label for="imageInput" class="flex flex-col items-center justify-center w-full h-40 border-2 border-slate-200 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 hover:border-indigo-300 transition-all group">
+                    <div id="dropZoneContainer" class="relative">
+                        <label for="imageInput" id="dropZoneLabel" class="flex flex-col items-center justify-center w-full h-44 border-2 border-slate-200 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 hover:border-indigo-300 transition-all group">
                             <div class="flex flex-col items-center justify-center text-center px-4" id="uploadPlaceholder">
-                                <i class="fas fa-images text-2xl text-slate-300 group-hover:text-indigo-500 mb-2 transition-colors"></i>
-                                <p class="text-[11px] text-slate-400 font-bold uppercase tracking-tight">点击或拖入主图</p>
+                                <i class="fas fa-cloud-arrow-up text-3xl text-slate-300 group-hover:text-indigo-500 mb-3 transition-colors"></i>
+                                <p class="text-[12px] text-slate-600 font-bold">点击上传 或 拖入主图</p>
+                                <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-tighter font-medium">也支持直接快捷键粘贴图片</p>
                             </div>
                             <input id="imageInput" type="file" class="hidden" accept="image/*" multiple />
                         </label>
@@ -117,7 +121,7 @@
                 </div>
 
                 <!-- Main Content Output -->
-                <div id="output" class="hidden space-y-6">
+                <div id="output" class="hidden space-y-8">
                     <!-- Tabs/Actions -->
                     <div class="flex justify-between items-center">
                         <h2 class="text-lg font-bold text-slate-800">生成结果</h2>
@@ -126,8 +130,36 @@
                         </button>
                     </div>
 
-                    <!-- SEO Section -->
+                    <!-- 1. Titles -->
+                    <div class="space-y-4">
+                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span> 产品标题 (Titles)
+                        </h3>
+                        <div id="titleContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                    </div>
+
+                    <!-- 2. Description -->
                     <div class="card overflow-hidden">
+                        <div class="bg-slate-800 px-5 py-2.5 flex justify-between items-center">
+                            <span class="text-[10px] font-black text-white uppercase tracking-tighter">Product Story & Specs</span>
+                            <button onclick="copyText('descEn')" class="text-[10px] text-white/80 hover:text-white uppercase font-bold">Copy English</button>
+                        </div>
+                        <div class="p-6">
+                            <div id="descEn" class="text-sm text-slate-700 leading-relaxed space-y-3"></div>
+                            <div id="descZh" class="mt-6 pt-6 border-t border-slate-100 text-[13px] text-slate-400 italic space-y-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Colors -->
+                    <div class="space-y-4">
+                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span> 颜色选项 (Color Palette)
+                        </h3>
+                        <div id="colorContainer" class="flex flex-wrap gap-3"></div>
+                    </div>
+
+                    <!-- 4. SEO Section -->
+                    <div class="card overflow-hidden border-indigo-100">
                         <div class="bg-indigo-600 px-5 py-2.5 flex justify-between items-center">
                             <span class="text-[10px] font-black text-white uppercase tracking-tighter">SEO Optimization</span>
                             <button onclick="copyText('seoContent')" class="text-[10px] text-white/80 hover:text-white uppercase font-bold">Copy All</button>
@@ -148,26 +180,8 @@
                         </div>
                     </div>
 
-                    <!-- Titles -->
-                    <div id="titleContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-
-                    <!-- Description -->
-                    <div class="card overflow-hidden">
-                        <div class="bg-slate-800 px-5 py-2.5 flex justify-between items-center">
-                            <span class="text-[10px] font-black text-white uppercase tracking-tighter">Product Story & Specs</span>
-                            <button onclick="copyText('descEn')" class="text-[10px] text-white/80 hover:text-white uppercase font-bold">Copy English</button>
-                        </div>
-                        <div class="p-6">
-                            <div id="descEn" class="text-sm text-slate-700 leading-relaxed space-y-3"></div>
-                            <div id="descZh" class="mt-6 pt-6 border-t border-slate-100 text-[13px] text-slate-400 italic space-y-2"></div>
-                        </div>
-                    </div>
-
-                    <!-- Colors -->
-                    <div id="colorContainer" class="flex flex-wrap gap-3"></div>
-
-                    <!-- Visual UGC Section -->
-                    <div class="pt-6 border-t border-slate-200">
+                    <!-- Visual UGC Section (Keeping at bottom) -->
+                    <div class="pt-8 border-t border-slate-200">
                         <div class="flex items-center justify-between mb-6">
                             <div>
                                 <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight">Consistent Visual UGC</h3>
@@ -198,6 +212,11 @@
                 const saved = localStorage.getItem(id);
                 if (saved) document.getElementById(id).value = saved;
             });
+
+            // 初始化粘贴监听
+            initPasteSupport();
+            // 初始化拖拽反馈
+            initDragAndDrop();
         };
 
         function toggleSettings() {
@@ -209,6 +228,45 @@
             configs.forEach(id => localStorage.setItem(id, document.getElementById(id).value.trim()));
             toggleSettings();
             showMessage("配置已成功更新");
+        }
+
+        // --- Improved Interaction Support ---
+        function initPasteSupport() {
+            window.addEventListener('paste', (e) => {
+                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                let found = false;
+                for (const item of items) {
+                    if (item.type.indexOf('image') !== -1) {
+                        const blob = item.getAsFile();
+                        processFile(blob);
+                        found = true;
+                    }
+                }
+                if (found) showMessage("已从剪贴板粘贴图片");
+            });
+        }
+
+        function initDragAndDrop() {
+            const dropZone = document.getElementById('dropZoneLabel');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.add('drop-active'), false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.remove('drop-active'), false);
+            });
+
+            dropZone.addEventListener('drop', e => {
+                const files = e.dataTransfer.files;
+                Array.from(files).forEach(processFile);
+            }, false);
         }
 
         // --- Network Wrapper with Exponential Backoff ---
@@ -254,7 +312,7 @@
         imageInput.onchange = e => Array.from(e.target.files).forEach(processFile);
 
         function processFile(file) {
-            if (!file.type.startsWith('image/')) return;
+            if (!file || !file.type.startsWith('image/')) return;
             const reader = new FileReader();
             reader.onload = (e) => {
                 uploadedImages.push({ base64: e.target.result.split(',')[1], mimeType: file.type });
@@ -266,9 +324,9 @@
         function updatePreviews() {
             document.getElementById('uploadPlaceholder').classList.toggle('hidden', uploadedImages.length > 0);
             document.getElementById('imagePreviews').innerHTML = uploadedImages.map((img, i) => `
-                <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shrink-0 shadow-sm">
+                <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shrink-0 shadow-sm bg-white">
                     <img src="data:${img.mimeType};base64,${img.base64}" class="w-full h-full object-cover">
-                    <button onclick="uploadedImages.splice(${i},1);updatePreviews();" class="absolute top-0 right-0 bg-red-500/80 text-white w-4 h-4 flex items-center justify-center text-[8px]">
+                    <button onclick="uploadedImages.splice(${i},1);updatePreviews();" class="absolute top-0 right-0 bg-red-500 text-white w-4 h-4 flex items-center justify-center text-[8px] hover:bg-red-600">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -334,13 +392,7 @@ JSON OUTPUT SCHEMA:
         function renderResults(data) {
             document.getElementById('output').classList.remove('hidden');
             
-            // SEO
-            document.getElementById('seoTitle').innerText = data.seo.en_t;
-            document.getElementById('seoTitleZh').innerText = data.seo.zh_t;
-            document.getElementById('seoDesc').innerText = data.seo.en_d;
-            document.getElementById('seoDescZh').innerText = data.seo.zh_d;
-
-            // Titles
+            // 1. Titles
             document.getElementById('titleContainer').innerHTML = data.titles.map(t => `
                 <div class="card p-4">
                     <span class="text-[8px] font-black text-indigo-400 bg-indigo-50 px-1.5 py-0.5 rounded mb-2 inline-block uppercase tracking-widest">${t.tag}</span>
@@ -349,7 +401,7 @@ JSON OUTPUT SCHEMA:
                 </div>
             `).join('');
 
-            // Description
+            // 2. Description
             document.getElementById('descEn').innerHTML = `
                 <p>${data.desc.en_s}</p>
                 <p><strong>Fabric:</strong> ${data.desc.en_f}</p>
@@ -361,7 +413,7 @@ JSON OUTPUT SCHEMA:
                 <p>尺码信息: ${data.desc.zh_r}</p>
             `;
 
-            // Colors
+            // 3. Colors
             document.getElementById('colorContainer').innerHTML = data.colors.map(c => `
                 <div class="bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2">
                     <span class="text-[11px] font-bold text-slate-700">${c.en}</span>
@@ -369,6 +421,12 @@ JSON OUTPUT SCHEMA:
                     <span class="text-[10px] text-slate-400">${c.zh}</span>
                 </div>
             `).join('');
+
+            // 4. SEO
+            document.getElementById('seoTitle').innerText = data.seo.en_t;
+            document.getElementById('seoTitleZh').innerText = data.seo.zh_t;
+            document.getElementById('seoDesc').innerText = data.seo.en_d;
+            document.getElementById('seoDescZh').innerText = data.seo.zh_d;
 
             // UGC Grid Init
             document.getElementById('ugcGrid').innerHTML = ugcPrompts.map((p, i) => `
@@ -425,7 +483,6 @@ JSON OUTPUT SCHEMA:
 
         // --- Utils ---
         function showMessage(text, type = "info") {
-            // Simple message box instead of alert
             const msg = document.createElement('div');
             msg.className = `fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full text-xs font-bold shadow-xl z-50 transition-all transform translate-y-20 ${type === 'error' ? 'bg-red-600 text-white' : 'bg-slate-900 text-white'}`;
             msg.innerText = text;
