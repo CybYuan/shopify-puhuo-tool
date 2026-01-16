@@ -1,353 +1,573 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopify AI Content Pro - Dual Engine Edition</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .card { background: white; border-radius: 1rem; border: 1px solid #e2e8f0; transition: all 0.2s; }
-        .card:hover { border-color: #cbd5e1; }
-        .loading-shimmer {
-            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        .image-grid-item { aspect-ratio: 1/1; overflow: hidden; position: relative; border-radius: 0.75rem; background: #f1f5f9; border: 1px solid #e2e8f0; }
-        .image-grid-item img { width: 100%; height: 100%; object-fit: cover; }
-        .image-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
-        .image-grid-item:hover .image-overlay { opacity: 1; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* 拖拽上传激活状态 */
-        .drop-active { border-color: #6366f1 !important; background-color: #eef2ff !important; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shopify AI Content Pro - Dual Engine Edition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    .card { background: white; border-radius: 1rem; border: 1px solid #e2e8f0; transition: all 0.2s; }
+    .card:hover { border-color: #cbd5e1; }
+    .loading-shimmer {
+      background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .image-grid-item { aspect-ratio: 1/1; overflow: hidden; position: relative; border-radius: 0.75rem; background: #f1f5f9; border: 1px solid #e2e8f0; }
+    .image-grid-item img { width: 100%; height: 100%; object-fit: cover; }
+    .image-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+    .image-grid-item:hover .image-overlay { opacity: 1; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .drop-active { border-color: #6366f1 !important; background-color: #eef2ff !important; }
+  </style>
 </head>
 <body class="text-slate-900 pb-20">
+  <div class="max-w-5xl mx-auto px-4 py-6">
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <i class="fas fa-bolt-lightning text-amber-500"></i> Shopify AI Content Pro
+        </h1>
+        <p class="text-slate-500 text-xs font-medium">双引擎驱动：Gemini 2.5 (文案) + Nano Banana (视觉)</p>
+      </div>
+      <div class="flex gap-2">
+        <button id="settingsBtn" class="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 transition-all shadow-sm" title="设置">
+          <i class="fas fa-sliders text-lg"></i>
+        </button>
+      </div>
+    </header>
 
-    <div class="max-w-5xl mx-auto px-4 py-6">
-        <!-- Header -->
-        <header class="flex justify-between items-center mb-8">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fas fa-bolt-lightning text-amber-500"></i> Shopify AI Content Pro
-                </h1>
-                <p class="text-slate-500 text-xs font-medium">双引擎驱动：Gemini 2.5 (文案) + Nano Banana (视觉)</p>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="toggleSettings()" class="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 transition-all shadow-sm">
-                    <i class="fas fa-sliders text-lg"></i>
-                </button>
-            </div>
-        </header>
-
-        <!-- API Settings Panel -->
-        <div id="settingsPanel" class="hidden mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Text Engine Settings -->
-            <div class="p-6 card border-indigo-100 bg-indigo-50/30">
-                <h3 class="text-sm font-bold text-indigo-900 mb-4 flex items-center gap-2">
-                    <i class="fas fa-font"></i> 文案引擎 (Gemini 2.5 Flash)
-                </h3>
-                <div class="space-y-3">
-                    <input id="textApiKey" type="password" placeholder="API Key (默认环境)" class="w-full px-4 py-2 rounded-lg border border-indigo-100 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
-                    <input id="textApiBase" type="text" placeholder="Proxy Base URL (可选)" class="w-full px-4 py-2 rounded-lg border border-indigo-100 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
-                </div>
-            </div>
-            <!-- Visual Engine Settings -->
-            <div class="p-6 card border-amber-100 bg-amber-50/30">
-                <h3 class="text-sm font-bold text-amber-900 mb-4 flex items-center gap-2">
-                    <i class="fas fa-image"></i> 视觉引擎 (Nano Banana)
-                </h3>
-                <div class="space-y-3">
-                    <input id="imageApiKey" type="password" placeholder="API Key (默认环境)" class="w-full px-4 py-2 rounded-lg border border-amber-100 focus:ring-2 focus:ring-amber-500 outline-none text-sm">
-                    <input id="imageApiBase" type="text" placeholder="Proxy Base URL (可选)" class="w-full px-4 py-2 rounded-lg border border-amber-100 focus:ring-2 focus:ring-amber-500 outline-none text-sm">
-                </div>
-            </div>
-            <div class="md:col-span-2">
-                <button onclick="saveSettings()" class="w-full bg-slate-900 text-white py-3 rounded-xl text-sm font-bold hover:bg-black transition-all">保存所有引擎配置</button>
-            </div>
+    <!-- API Settings Panel -->
+    <div id="settingsPanel" class="hidden mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Text Engine Settings -->
+      <div class="p-6 card border-indigo-100 bg-indigo-50/30">
+        <h3 class="text-sm font-bold text-indigo-900 mb-4 flex items-center gap-2">
+          <i class="fas fa-font"></i> 文案引擎 (Gemini 2.5 Flash)
+        </h3>
+        <div class="space-y-3">
+          <input id="textApiKey" type="password" placeholder="API Key (本地保存可选)" class="w-full px-4 py-2 rounded-lg border border-indigo-100 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+          <input id="textApiBase" type="text" placeholder="Proxy Base URL (可选，默认 Google)" class="w-full px-4 py-2 rounded-lg border border-indigo-100 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+          <label class="flex items-center gap-2 text-[11px] text-slate-600 select-none">
+            <input id="rememberTextKey" type="checkbox" class="rounded border-slate-300">
+            记住 API Key（会存到浏览器 localStorage，不推荐在公共电脑使用）
+          </label>
         </div>
-
-        <!-- Main Workspace -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <!-- Left: Inputs -->
-            <div class="lg:col-span-4 space-y-6">
-                <div class="card p-5">
-                    <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">1. 产品视觉素材</label>
-                    <div id="dropZoneContainer" class="relative">
-                        <label for="imageInput" id="dropZoneLabel" class="flex flex-col items-center justify-center w-full h-44 border-2 border-slate-200 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 hover:border-indigo-300 transition-all group">
-                            <div class="flex flex-col items-center justify-center text-center px-4" id="uploadPlaceholder">
-                                <i class="fas fa-cloud-arrow-up text-3xl text-slate-300 group-hover:text-indigo-500 mb-3 transition-colors"></i>
-                                <p class="text-[12px] text-slate-600 font-bold">点击上传 或 拖入主图</p>
-                                <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-tighter font-medium">也支持直接快捷键粘贴图片</p>
-                            </div>
-                            <input id="imageInput" type="file" class="hidden" accept="image/*" multiple />
-                        </label>
-                    </div>
-                    <div id="imagePreviews" class="flex gap-2 overflow-x-auto no-scrollbar mt-3 pb-1"></div>
-                </div>
-
-                <div class="card p-5">
-                    <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">2. 文案微调 (Optional)</label>
-                    <textarea id="rawInput" rows="6" placeholder="品牌名、面料成分、特定风格需求..." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm leading-relaxed bg-slate-50/50"></textarea>
-                </div>
-
-                <button id="generateBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-3">
-                    <i class="fas fa-wand-magic-sparkles"></i>
-                    <span>分析并生成双语方案</span>
-                </button>
-            </div>
-
-            <!-- Right: Outputs -->
-            <div class="lg:col-span-8 space-y-8">
-                <!-- Status/Error -->
-                <div id="errorMessage" class="hidden p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm flex items-start gap-3">
-                    <i class="fas fa-circle-exclamation mt-0.5"></i>
-                    <div class="flex-1">
-                        <p class="font-bold">引擎响应错误</p>
-                        <p id="errorText" class="text-xs mt-1 opacity-80"></p>
-                    </div>
-                </div>
-
-                <!-- Loading State -->
-                <div id="loading" class="hidden space-y-6">
-                    <div class="loading-shimmer h-40 rounded-xl"></div>
-                    <div class="loading-shimmer h-64 rounded-xl"></div>
-                </div>
-
-                <!-- Main Content Output -->
-                <div id="output" class="hidden space-y-8">
-                    <!-- Tabs/Actions -->
-                    <div class="flex justify-between items-center">
-                        <h2 class="text-lg font-bold text-slate-800">生成结果</h2>
-                        <button onclick="exportData()" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-indigo-600 border border-slate-200 rounded-lg bg-white flex items-center gap-2 transition-all">
-                            <i class="fas fa-download"></i> 导出 JSON
-                        </button>
-                    </div>
-
-                    <!-- 1. Titles -->
-                    <div class="space-y-4">
-                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span> 产品标题 (Titles)
-                        </h3>
-                        <div id="titleContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-                    </div>
-
-                    <!-- 2. Description -->
-                    <div class="card overflow-hidden">
-                        <div class="bg-slate-800 px-5 py-2.5 flex justify-between items-center">
-                            <span class="text-[10px] font-black text-white uppercase tracking-tighter">Product Story & Specs</span>
-                            <button onclick="copyText('descEn')" class="text-[10px] text-white/80 hover:text-white uppercase font-bold">Copy English</button>
-                        </div>
-                        <div class="p-6">
-                            <div id="descEn" class="text-sm text-slate-700 leading-relaxed space-y-3"></div>
-                            <div id="descZh" class="mt-6 pt-6 border-t border-slate-100 text-[13px] text-slate-400 italic space-y-2"></div>
-                        </div>
-                    </div>
-
-                    <!-- 3. Colors -->
-                    <div class="space-y-4">
-                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span> 颜色选项 (Color Palette)
-                        </h3>
-                        <div id="colorContainer" class="flex flex-wrap gap-3"></div>
-                    </div>
-
-                    <!-- 4. SEO Section -->
-                    <div class="card overflow-hidden border-indigo-100">
-                        <div class="bg-indigo-600 px-5 py-2.5 flex justify-between items-center">
-                            <span class="text-[10px] font-black text-white uppercase tracking-tighter">SEO Optimization</span>
-                            <button onclick="copyText('seoContent')" class="text-[10px] text-white/80 hover:text-white uppercase font-bold">Copy All</button>
-                        </div>
-                        <div class="p-5 space-y-4" id="seoContent">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Meta Title</label>
-                                    <p id="seoTitle" class="text-sm font-bold text-slate-800"></p>
-                                    <p id="seoTitleZh" class="text-[11px] text-slate-400 mt-1 italic"></p>
-                                </div>
-                                <div>
-                                    <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Meta Description</label>
-                                    <p id="seoDesc" class="text-xs text-slate-600 leading-relaxed"></p>
-                                    <p id="seoDescZh" class="text-[11px] text-slate-400 mt-1 italic"></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Visual UGC Section (Keeping at bottom) -->
-                    <div class="pt-8 border-t border-slate-200">
-                        <div class="flex items-center justify-between mb-6">
-                            <div>
-                                <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight">Consistent Visual UGC</h3>
-                                <p class="text-[10px] text-slate-400">由 Nano Banana 视觉引擎基于产品原图生成的买家秀图库</p>
-                            </div>
-                            <button id="generateUgcBtn" class="bg-amber-500 text-white px-5 py-2.5 rounded-full text-xs font-black shadow-lg shadow-amber-100 hover:bg-amber-600 transition-all flex items-center gap-2">
-                                <i class="fas fa-camera-retro"></i> 生成高清图库
-                            </button>
-                        </div>
-                        <div id="ugcGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"></div>
-                        <p id="ugcStatus" class="mt-4 text-[10px] text-slate-400 text-center font-medium italic hidden"></p>
-                    </div>
-                </div>
-            </div>
+      </div>
+      <!-- Visual Engine Settings -->
+      <div class="p-6 card border-amber-100 bg-amber-50/30">
+        <h3 class="text-sm font-bold text-amber-900 mb-4 flex items-center gap-2">
+          <i class="fas fa-image"></i> 视觉引擎 (Nano Banana)
+        </h3>
+        <div class="space-y-3">
+          <input id="imageApiKey" type="password" placeholder="API Key (本地保存可选)" class="w-full px-4 py-2 rounded-lg border border-amber-100 focus:ring-2 focus:ring-amber-500 outline-none text-sm">
+          <input id="imageApiBase" type="text" placeholder="Proxy Base URL (可选，默认 Google)" class="w-full px-4 py-2 rounded-lg border border-amber-100 focus:ring-2 focus:ring-amber-500 outline-none text-sm">
+          <label class="flex items-center gap-2 text-[11px] text-slate-600 select-none">
+            <input id="rememberImageKey" type="checkbox" class="rounded border-slate-300">
+            记住 API Key（会存到浏览器 localStorage，不推荐在公共电脑使用）
+          </label>
         </div>
+      </div>
+      <div class="md:col-span-2">
+        <button id="saveSettingsBtn" class="w-full bg-slate-900 text-white py-3 rounded-xl text-sm font-bold hover:bg-black transition-all">保存所有引擎配置</button>
+      </div>
     </div>
 
-    <script>
-        // --- Configuration & Initialization ---
-        let currentData = null;
-        let uploadedImages = [];
-        let ugcPrompts = [];
-        const apiKey = ""; // 运行时注入
+    <!-- Main Workspace -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <!-- Left: Inputs -->
+      <div class="lg:col-span-4 space-y-6">
+        <div class="card p-5">
+          <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">1. 产品视觉素材</label>
+          <div id="dropZoneContainer" class="relative">
+            <label for="imageInput" id="dropZoneLabel" class="flex flex-col items-center justify-center w-full h-44 border-2 border-slate-200 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 hover:border-indigo-300 transition-all group">
+              <div class="flex flex-col items-center justify-center text-center px-4" id="uploadPlaceholder">
+                <i class="fas fa-cloud-arrow-up text-3xl text-slate-300 group-hover:text-indigo-500 mb-3 transition-colors"></i>
+                <p class="text-[12px] text-slate-600 font-bold">点击上传 或 拖入主图</p>
+                <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-tighter font-medium">也支持直接快捷键粘贴图片</p>
+                <p class="text-[10px] text-slate-400 mt-1 font-medium">建议主图 &lt; 4MB；系统会自动压缩以加速生成</p>
+              </div>
+              <input id="imageInput" type="file" class="hidden" accept="image/*" multiple />
+            </label>
+          </div>
+          <div id="imagePreviews" class="flex gap-2 overflow-x-auto no-scrollbar mt-3 pb-1"></div>
+        </div>
 
-        window.onload = () => {
-            const configs = ['textApiKey', 'textApiBase', 'imageApiKey', 'imageApiBase'];
-            configs.forEach(id => {
-                const saved = localStorage.getItem(id);
-                if (saved) document.getElementById(id).value = saved;
-            });
+        <div class="card p-5">
+          <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">2. 文案微调 (Optional)</label>
+          <textarea id="rawInput" rows="6" placeholder="品牌名、面料成分、特定风格需求..." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm leading-relaxed bg-slate-50/50"></textarea>
+        </div>
 
-            // 初始化粘贴监听
-            initPasteSupport();
-            // 初始化拖拽反馈
-            initDragAndDrop();
-        };
+        <button id="generateBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-3">
+          <i class="fas fa-wand-magic-sparkles"></i>
+          <span>分析并生成双语方案</span>
+        </button>
+      </div>
 
-        function toggleSettings() {
-            document.getElementById('settingsPanel').classList.toggle('hidden');
-        }
+      <!-- Right: Outputs -->
+      <div class="lg:col-span-8 space-y-8">
+        <!-- Status/Error -->
+        <div id="errorMessage" class="hidden p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm flex items-start gap-3">
+          <i class="fas fa-circle-exclamation mt-0.5"></i>
+          <div class="flex-1">
+            <p class="font-bold">引擎响应错误</p>
+            <p id="errorText" class="text-xs mt-1 opacity-80"></p>
+          </div>
+        </div>
 
-        function saveSettings() {
-            const configs = ['textApiKey', 'textApiBase', 'imageApiKey', 'imageApiBase'];
-            configs.forEach(id => localStorage.setItem(id, document.getElementById(id).value.trim()));
-            toggleSettings();
-            showMessage("配置已成功更新");
-        }
+        <!-- Loading State -->
+        <div id="loading" class="hidden space-y-6">
+          <div class="loading-shimmer h-40 rounded-xl"></div>
+          <div class="loading-shimmer h-64 rounded-xl"></div>
+        </div>
 
-        // --- Improved Interaction Support ---
-        function initPasteSupport() {
-            window.addEventListener('paste', (e) => {
-                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-                let found = false;
-                for (const item of items) {
-                    if (item.type.indexOf('image') !== -1) {
-                        const blob = item.getAsFile();
-                        processFile(blob);
-                        found = true;
-                    }
-                }
-                if (found) showMessage("已从剪贴板粘贴图片");
-            });
-        }
+        <!-- Main Content Output -->
+        <div id="output" class="hidden space-y-8">
+          <!-- Tabs/Actions -->
+          <div class="flex justify-between items-center">
+            <h2 class="text-lg font-bold text-slate-800">生成结果</h2>
+            <div class="flex items-center gap-2">
+              <button id="copyAllBtn" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-indigo-600 border border-slate-200 rounded-lg bg-white flex items-center gap-2 transition-all" title="复制 JSON">
+                <i class="fas fa-copy"></i> 复制 JSON
+              </button>
+              <button id="exportBtn" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-indigo-600 border border-slate-200 rounded-lg bg-white flex items-center gap-2 transition-all">
+                <i class="fas fa-download"></i> 导出 JSON
+              </button>
+            </div>
+          </div>
 
-        function initDragAndDrop() {
-            const dropZone = document.getElementById('dropZoneLabel');
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, e => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }, false);
-            });
+          <!-- 1. Titles -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span> 产品标题 (Titles)
+            </h3>
+            <div id="titleContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+          </div>
 
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropZone.addEventListener(eventName, () => dropZone.classList.add('drop-active'), false);
-            });
+          <!-- 2. Description -->
+          <div class="card overflow-hidden">
+            <div class="bg-slate-800 px-5 py-2.5 flex justify-between items-center">
+              <span class="text-[10px] font-black text-white uppercase tracking-tighter">Product Story & Specs</span>
+              <button id="copyEnglishBtn" class="text-[10px] text-white/80 hover:text-white uppercase font-bold">Copy English</button>
+            </div>
+            <div class="p-6">
+              <div id="descEn" class="text-sm text-slate-700 leading-relaxed space-y-3"></div>
+              <div id="descZh" class="mt-6 pt-6 border-t border-slate-100 text-[13px] text-slate-400 italic space-y-2"></div>
+            </div>
+          </div>
 
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, () => dropZone.classList.remove('drop-active'), false);
-            });
+          <!-- 2.5 Style Description (3-Section Format) -->
+          <div class="card overflow-hidden border-purple-100">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-5 py-2.5 flex justify-between items-center">
+              <span class="text-[10px] font-black text-white uppercase tracking-tighter">Style Description (3-Section)</span>
+              <button id="copyStyleBtn" class="text-[10px] text-white/80 hover:text-white uppercase font-bold">Copy</button>
+            </div>
+            <div class="p-6 space-y-5" id="styleDescContainer"></div>
+          </div>
 
-            dropZone.addEventListener('drop', e => {
-                const files = e.dataTransfer.files;
-                Array.from(files).forEach(processFile);
-            }, false);
-        }
+          <!-- 3. Colors -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span> 颜色选项 (Color Palette)
+            </h3>
+            <div id="colorContainer" class="flex flex-wrap gap-3"></div>
+          </div>
 
-        // --- Network Wrapper with Exponential Backoff ---
-        async function fetchWithRetry(url, options, maxRetries = 5) {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(url, options);
-                    if (response.ok) return await response.json();
-                    if (response.status === 429) { // Rate limit
-                        const delay = Math.pow(2, i) * 1000;
-                        await new Promise(r => setTimeout(r, delay));
-                        continue;
-                    }
-                    const errorData = await response.json();
-                    throw new Error(errorData.error?.message || `HTTP ${response.status}`);
-                } catch (err) {
-                    if (i === maxRetries - 1) throw err;
-                    const delay = Math.pow(2, i) * 1000;
-                    await new Promise(r => setTimeout(r, delay));
-                }
-            }
-        }
-
-        // --- Engine Call Logic ---
-        async function callEngine(type, payload) {
-            const isText = type === 'text';
-            const engineKey = document.getElementById(isText ? 'textApiKey' : 'imageApiKey').value || apiKey;
-            const engineBase = document.getElementById(isText ? 'textApiBase' : 'imageApiBase').value || "https://generativelanguage.googleapis.com";
-            const model = isText ? 'gemini-2.5-flash-preview-09-2025' : 'gemini-2.5-flash-image-preview';
-            
-            const cleanBase = engineBase.endsWith('/') ? engineBase.slice(0, -1) : engineBase;
-            const url = `${cleanBase}/v1beta/models/${model}:generateContent?key=${engineKey}`;
-
-            return await fetchWithRetry(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-        }
-
-        // --- File Handling ---
-        const imageInput = document.getElementById('imageInput');
-        imageInput.onchange = e => Array.from(e.target.files).forEach(processFile);
-
-        function processFile(file) {
-            if (!file || !file.type.startsWith('image/')) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                uploadedImages.push({ base64: e.target.result.split(',')[1], mimeType: file.type });
-                updatePreviews();
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function updatePreviews() {
-            document.getElementById('uploadPlaceholder').classList.toggle('hidden', uploadedImages.length > 0);
-            document.getElementById('imagePreviews').innerHTML = uploadedImages.map((img, i) => `
-                <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shrink-0 shadow-sm bg-white">
-                    <img src="data:${img.mimeType};base64,${img.base64}" class="w-full h-full object-cover">
-                    <button onclick="uploadedImages.splice(${i},1);updatePreviews();" class="absolute top-0 right-0 bg-red-500 text-white w-4 h-4 flex items-center justify-center text-[8px] hover:bg-red-600">
-                        <i class="fas fa-times"></i>
-                    </button>
+          <!-- 4. SEO Section -->
+          <div class="card overflow-hidden border-indigo-100">
+            <div class="bg-indigo-600 px-5 py-2.5 flex justify-between items-center">
+              <span class="text-[10px] font-black text-white uppercase tracking-tighter">SEO Optimization</span>
+              <button id="copySeoBtn" class="text-[10px] text-white/80 hover:text-white uppercase font-bold">Copy All</button>
+            </div>
+            <div class="p-5 space-y-4" id="seoContent">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Meta Title</label>
+                  <p id="seoTitle" class="text-sm font-bold text-slate-800"></p>
+                  <p id="seoTitleZh" class="text-[11px] text-slate-400 mt-1 italic"></p>
                 </div>
-            `).join('');
+                <div>
+                  <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Meta Description</label>
+                  <p id="seoDesc" class="text-xs text-slate-600 leading-relaxed"></p>
+                  <p id="seoDescZh" class="text-[11px] text-slate-400 mt-1 italic"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Visual UGC Section -->
+          <div class="pt-8 border-t border-slate-200">
+            <div class="flex items-center justify-between mb-6 gap-3">
+              <div>
+                <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight">Consistent Visual UGC</h3>
+                <p class="text-[10px] text-slate-400">由 Nano Banana 视觉引擎基于产品原图生成的买家秀图库</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="cancelUgcBtn" class="hidden bg-white text-slate-700 px-4 py-2.5 rounded-full text-xs font-black border border-slate-200 hover:border-slate-300 transition-all">
+                  <i class="fas fa-ban"></i> 停止
+                </button>
+                <button id="generateUgcBtn" class="bg-amber-500 text-white px-5 py-2.5 rounded-full text-xs font-black shadow-lg shadow-amber-100 hover:bg-amber-600 transition-all flex items-center gap-2">
+                  <i class="fas fa-camera-retro"></i> 生成高清图库
+                </button>
+              </div>
+            </div>
+            <div id="ugcGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"></div>
+            <p id="ugcStatus" class="mt-4 text-[10px] text-slate-400 text-center font-medium italic hidden"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- State ---
+    let currentData = null;
+    let uploadedImages = []; // { base64, mimeType, previewUrl }
+    let ugcPrompts = [];
+    const apiKey = ""; // 可由构建/运行时注入（纯静态页面无法真正隐藏密钥）
+
+    // Abort controllers
+    let textAbort = null;
+    let ugcAbort = null;
+
+    // --- DOM helpers ---
+    const $ = (id) => document.getElementById(id);
+
+    function showError(message) {
+      $('errorText').innerText = message || '未知错误';
+      $('errorMessage').classList.remove('hidden');
+    }
+
+    function clearError() {
+      $('errorMessage').classList.add('hidden');
+      $('errorText').innerText = '';
+    }
+
+    function normalizeBaseUrl(base) {
+      const fallback = "https://generativelanguage.googleapis.com";
+      const input = (base || '').trim();
+      const clean = (input || fallback).replace(/\/+$/, '');
+      return clean;
+    }
+
+    function requiredKeyOrThrow(key, engineName) {
+      if (!key || !key.trim()) throw new Error(`${engineName} API Key 为空：请在设置里填写，或使用代理注入 key。`);
+      return key.trim();
+    }
+
+    function safeJsonParse(text) {
+      if (!text) throw new Error('模型返回为空');
+      try {
+        return JSON.parse(text);
+      } catch (_) {
+        // 尝试从文本里截取最外层 JSON（防止模型加了说明文字）
+        const first = text.indexOf('{');
+        const last = text.lastIndexOf('}');
+        if (first !== -1 && last !== -1 && last > first) {
+          const maybe = text.slice(first, last + 1);
+          return JSON.parse(maybe);
+        }
+        throw new Error('返回内容不是合法 JSON');
+      }
+    }
+
+    function el(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined && text !== null) node.textContent = String(text);
+      return node;
+    }
+
+    async function copyToClipboard(text) {
+      const t = (text ?? '').toString();
+      if (!t) return;
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(t);
+        return;
+      }
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = t;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+
+    // --- Toast ---
+    function showMessage(text, type = "info") {
+      const msg = document.createElement('div');
+      msg.className = `fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full text-xs font-bold shadow-xl z-50 transition-all transform translate-y-20 ${type === 'error' ? 'bg-red-600 text-white' : 'bg-slate-900 text-white'}`;
+      msg.innerText = text;
+      document.body.appendChild(msg);
+      setTimeout(() => { msg.classList.remove('translate-y-20'); }, 10);
+      setTimeout(() => {
+        msg.classList.add('translate-y-20');
+        setTimeout(() => msg.remove(), 500);
+      }, 3000);
+    }
+
+    // --- Settings ---
+    function toggleSettings() {
+      $('settingsPanel').classList.toggle('hidden');
+    }
+
+    function loadSettings() {
+      const configs = ['textApiBase', 'imageApiBase', 'rememberTextKey', 'rememberImageKey'];
+      configs.forEach(id => {
+        const saved = localStorage.getItem(id);
+        if (saved !== null) {
+          if ($(id)?.type === 'checkbox') $(id).checked = saved === 'true';
+          else $(id).value = saved;
+        }
+      });
+      // keys：只在用户明确勾选“记住”时读取/写入
+      if ($('rememberTextKey').checked) {
+        const k = localStorage.getItem('textApiKey');
+        if (k) $('textApiKey').value = k;
+      }
+      if ($('rememberImageKey').checked) {
+        const k = localStorage.getItem('imageApiKey');
+        if (k) $('imageApiKey').value = k;
+      }
+    }
+
+    function saveSettings() {
+      localStorage.setItem('textApiBase', $('textApiBase').value.trim());
+      localStorage.setItem('imageApiBase', $('imageApiBase').value.trim());
+      localStorage.setItem('rememberTextKey', String($('rememberTextKey').checked));
+      localStorage.setItem('rememberImageKey', String($('rememberImageKey').checked));
+
+      if ($('rememberTextKey').checked) localStorage.setItem('textApiKey', $('textApiKey').value.trim());
+      else localStorage.removeItem('textApiKey');
+
+      if ($('rememberImageKey').checked) localStorage.setItem('imageApiKey', $('imageApiKey').value.trim());
+      else localStorage.removeItem('imageApiKey');
+
+      toggleSettings();
+      showMessage("配置已成功更新");
+    }
+
+    // --- Improved Interaction Support ---
+    function initPasteSupport() {
+      window.addEventListener('paste', (e) => {
+        const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items || [];
+        let found = false;
+        for (const item of items) {
+          if (item.type && item.type.indexOf('image') !== -1) {
+            const blob = item.getAsFile();
+            processFile(blob);
+            found = true;
+          }
+        }
+        if (found) showMessage("已从剪贴板粘贴图片");
+      });
+    }
+
+    function initDragAndDrop() {
+      const dropZone = $('dropZoneLabel');
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, e => {
+          e.preventDefault();
+          e.stopPropagation();
+        }, false);
+      });
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.add('drop-active'), false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove('drop-active'), false);
+      });
+
+      dropZone.addEventListener('drop', e => {
+        const files = e.dataTransfer.files;
+        Array.from(files).forEach(processFile);
+      }, false);
+    }
+
+    // --- Image preprocessing (shrink) ---
+    const MAX_IMAGES = 8;
+    const MAX_DIM = 1400; // good enough for analysis, reduces payload a lot
+    const JPEG_QUALITY = 0.86;
+
+    async function fileToDownscaledDataUrl(file) {
+      // Prefer createImageBitmap for speed
+      let bmp = null;
+      try {
+        bmp = await createImageBitmap(file);
+      } catch (_) {}
+
+      const img = bmp ? null : await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = URL.createObjectURL(file);
+      });
+
+      const w = bmp ? bmp.width : img.width;
+      const h = bmp ? bmp.height : img.height;
+      const scale = Math.min(1, MAX_DIM / Math.max(w, h));
+      const tw = Math.max(1, Math.round(w * scale));
+      const th = Math.max(1, Math.round(h * scale));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = tw;
+      canvas.height = th;
+      const ctx = canvas.getContext('2d', { alpha: false });
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(bmp || img, 0, 0, tw, th);
+
+      if (!bmp && img?.src?.startsWith('blob:')) {
+        try { URL.revokeObjectURL(img.src); } catch (_) {}
+      }
+      if (bmp) {
+        try { bmp.close(); } catch (_) {}
+      }
+
+      // Use JPEG for smaller size unless original is PNG with transparency
+      const isPng = (file.type || '').toLowerCase() === 'image/png';
+      const outMime = isPng ? 'image/png' : 'image/jpeg';
+      const dataUrl = canvas.toDataURL(outMime, isPng ? undefined : JPEG_QUALITY);
+      return { dataUrl, mimeType: outMime };
+    }
+
+    // --- Network Wrapper with retry + timeout + abort ---
+    async function fetchJsonWithRetry(url, options, { maxRetries = 5, timeoutMs = 60000 } = {}) {
+      for (let i = 0; i < maxRetries; i++) {
+        const controller = new AbortController();
+        const parentSignal = options?.signal;
+        const abortOnParent = () => controller.abort(parentSignal?.reason || 'aborted');
+        if (parentSignal) {
+          if (parentSignal.aborted) controller.abort(parentSignal.reason || 'aborted');
+          else parentSignal.addEventListener('abort', abortOnParent, { once: true });
         }
 
-        // --- Main Generation Flow ---
-        document.getElementById('generateBtn').onclick = async () => {
-            if (uploadedImages.length === 0) return showMessage("请至少上传一张产品图片", "error");
+        const timer = setTimeout(() => controller.abort('timeout'), timeoutMs);
+        try {
+          const response = await fetch(url, { ...options, signal: controller.signal });
+          if (response.ok) {
+            const data = await response.json();
+            return data;
+          }
 
-            const btn = document.getElementById('generateBtn');
-            const loading = document.getElementById('loading');
-            const output = document.getElementById('output');
-            const errorBox = document.getElementById('errorMessage');
+          // Retry only for rate limit / transient server errors
+          const retryable = response.status === 429 || (response.status >= 500 && response.status <= 599);
+          let errMsg = `HTTP ${response.status}`;
+          try {
+            const errJson = await response.json();
+            errMsg = errJson?.error?.message || errJson?.message || errMsg;
+          } catch (_) {
+            // ignore non-json
+          }
 
-            btn.disabled = true;
-            loading.classList.remove('hidden');
-            output.classList.add('hidden');
-            errorBox.classList.add('hidden');
+          if (retryable && i < maxRetries - 1) {
+            const delay = Math.min(8000, Math.pow(2, i) * 700);
+            await new Promise(r => setTimeout(r, delay));
+            continue;
+          }
+          throw new Error(errMsg);
+        } catch (err) {
+          const isAbort = (err?.name === 'AbortError') || String(err?.message || '').includes('aborted') || String(err).includes('timeout');
+          if (isAbort) throw new Error('请求已取消或超时');
+          if (i === maxRetries - 1) throw err;
+          const delay = Math.min(8000, Math.pow(2, i) * 700);
+          await new Promise(r => setTimeout(r, delay));
+        } finally {
+          clearTimeout(timer);
+          if (parentSignal) parentSignal.removeEventListener('abort', abortOnParent);
+        }
+      }
+    }
 
-            const systemPrompt = `You are an elite Shopify product strategist.
+    // --- Engine Call Logic ---
+    async function callEngine(type, payload, { signal } = {}) {
+      const isText = type === 'text';
+      const engineKey = (isText ? $('textApiKey').value : $('imageApiKey').value) || apiKey;
+      const engineBase = normalizeBaseUrl(isText ? $('textApiBase').value : $('imageApiBase').value);
+      const model = isText ? 'gemini-2.5-flash-preview-09-2025' : 'gemini-2.5-flash-image-preview';
+
+      const key = requiredKeyOrThrow(engineKey, isText ? '文案引擎' : '视觉引擎');
+      const url = `${engineBase}/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
+      return await fetchJsonWithRetry(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal
+      }, { maxRetries: 5, timeoutMs: isText ? 70000 : 120000 });
+    }
+
+    // --- File Handling ---
+    const imageInput = $('imageInput');
+    imageInput.onchange = e => Array.from(e.target.files).forEach(processFile);
+
+    async function processFile(file) {
+      if (!file || !file.type?.startsWith('image/')) return;
+      if (uploadedImages.length >= MAX_IMAGES) return showMessage(`最多上传 ${MAX_IMAGES} 张图片`, "error");
+
+      try {
+        const { dataUrl, mimeType } = await fileToDownscaledDataUrl(file);
+        const base64 = dataUrl.split(',')[1];
+        const previewUrl = dataUrl; // 直接用压缩后 dataURL 预览，避免 blob URL 管理复杂度
+        uploadedImages.push({ base64, mimeType, previewUrl });
+        updatePreviews();
+      } catch (e) {
+        showMessage("图片处理失败，请换一张或降低图片大小", "error");
+      }
+    }
+
+    function removeImageAt(i) {
+      uploadedImages.splice(i, 1);
+      updatePreviews();
+    }
+
+    function updatePreviews() {
+      $('uploadPlaceholder').classList.toggle('hidden', uploadedImages.length > 0);
+      $('imagePreviews').innerHTML = '';
+      uploadedImages.forEach((img, i) => {
+        const wrap = el('div', 'relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shrink-0 shadow-sm bg-white');
+        const image = document.createElement('img');
+        image.src = img.previewUrl;
+        image.className = 'w-full h-full object-cover';
+        const btn = document.createElement('button');
+        btn.className = 'absolute top-0 right-0 bg-red-500 text-white w-4 h-4 flex items-center justify-center text-[8px] hover:bg-red-600';
+        btn.title = '移除';
+        btn.innerHTML = '<i class="fas fa-times"></i>';
+        btn.addEventListener('click', () => removeImageAt(i));
+        wrap.appendChild(image);
+        wrap.appendChild(btn);
+        $('imagePreviews').appendChild(wrap);
+      });
+    }
+
+    // --- Main Generation Flow ---
+    async function generateText() {
+      if (uploadedImages.length === 0) return showMessage("请至少上传一张产品图片", "error");
+      clearError();
+
+      const btn = $('generateBtn');
+      const loading = $('loading');
+      const output = $('output');
+
+      // cancel previous
+      if (textAbort) textAbort.abort('replaced');
+      textAbort = new AbortController();
+
+      btn.disabled = true;
+      loading.classList.remove('hidden');
+      output.classList.add('hidden');
+
+      const systemPrompt = `You are an elite Shopify product strategist.
 Goal: Create high-converting bilingual (English/Chinese) product listings.
 Deliverables: SEO meta, catchy titles, immersive descriptions, and UGC prompts.
 
@@ -360,160 +580,269 @@ JSON OUTPUT SCHEMA:
 {
   "seo": { "en_t": "...", "zh_t": "...", "en_d": "...", "zh_d": "..." },
   "titles": [{"tag": "SEO-READY", "en": "...", "zh": "..."}],
-  "desc": { "en_s": "Story...", "en_f": "Fabric...", "en_r": "Ref...", "zh_s": "...", "zh_f": "...", "zh_r": "..." },
+  "desc": { "en_s": "Story...", "en_f": "Fabric...", "en_r": "Ref...", "zh_s": "...", "zh_f": "...", "zh_r": "Ref..." },
+  "styleDesc": {
+    "section1": { "title": "...", "line1": "...", "line2": "..." },
+    "section2": { "title": "...", "line1": "...", "line2": "..." },
+    "section3": { "title": "...", "line1": "...", "line2": "..." }
+  },
   "colors": [{"en": "Sandstone", "zh": "磨砂金"}],
   "ugc": [{"scene": "Street Style", "prompt": "Outdoor street photography style..."}]
-}`;
+}
 
-            const parts = [{ text: document.getElementById('rawInput').value.trim() || "Analyze this product in detail." }];
-            uploadedImages.forEach(img => parts.push({ inlineData: { mimeType: img.mimeType, data: img.base64 } }));
+Style Description Format (3 sections, each with title + 2 lines):
+Example:
+Section 1: "Flattering Lift, Natural Shape" / "Deep-V neckline visually lifts..." / "Subtle yet strong support..."
+Section 2: "Seamless Fit, Everyday Ease" / "Light molded cups conform..." / "Perfect for effortless daily wear."
+Section 3: "Second-Skin Comfort, All-Day Feel" / "Soft nylon fabric hugs..." / "Minimalist design meets lasting wearability..."
 
-            try {
-                const response = await callEngine('text', {
-                    contents: [{ parts }],
-                    systemInstruction: { parts: [{ text: systemPrompt }] },
-                    generationConfig: { responseMimeType: "application/json" }
-                });
+Each section MUST have exactly: 1 title + 2 description lines.`;
 
-                const rawText = response.candidates?.[0]?.content?.parts?.[0]?.text;
-                const result = JSON.parse(rawText);
-                currentData = result;
-                ugcPrompts = result.ugc || [];
-                renderResults(result);
-            } catch (err) {
-                document.getElementById('errorText').innerText = err.message;
-                errorBox.classList.remove('hidden');
-            } finally {
-                btn.disabled = false;
-                loading.classList.add('hidden');
-            }
-        };
+      const parts = [{ text: $('rawInput').value.trim() || "Analyze this product in detail." }];
+      uploadedImages.forEach(img => parts.push({ inlineData: { mimeType: img.mimeType, data: img.base64 } }));
 
-        function renderResults(data) {
-            document.getElementById('output').classList.remove('hidden');
-            
-            // 1. Titles
-            document.getElementById('titleContainer').innerHTML = data.titles.map(t => `
-                <div class="card p-4">
-                    <span class="text-[8px] font-black text-indigo-400 bg-indigo-50 px-1.5 py-0.5 rounded mb-2 inline-block uppercase tracking-widest">${t.tag}</span>
-                    <h4 class="text-sm font-bold text-slate-800 leading-tight">${t.en}</h4>
-                    <p class="text-[11px] text-slate-400 italic mt-2">${t.zh}</p>
-                </div>
-            `).join('');
+      try {
+        const response = await callEngine('text', {
+          contents: [{ parts }],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.6
+          }
+        }, { signal: textAbort.signal });
 
-            // 2. Description
-            document.getElementById('descEn').innerHTML = `
-                <p>${data.desc.en_s}</p>
-                <p><strong>Fabric:</strong> ${data.desc.en_f}</p>
-                <p><strong>Model:</strong> ${data.desc.en_r}</p>
-            `;
-            document.getElementById('descZh').innerHTML = `
-                <p>${data.desc.zh_s}</p>
-                <p>材质: ${data.desc.zh_f}</p>
-                <p>尺码信息: ${data.desc.zh_r}</p>
-            `;
+        const rawText = response?.candidates?.[0]?.content?.parts?.[0]?.text;
+        const result = safeJsonParse(rawText);
+        currentData = result;
+        ugcPrompts = Array.isArray(result.ugc) ? result.ugc : [];
+        renderResults(result);
+      } catch (err) {
+        showError(err?.message || String(err));
+      } finally {
+        btn.disabled = false;
+        loading.classList.add('hidden');
+      }
+    }
 
-            // 3. Colors
-            document.getElementById('colorContainer').innerHTML = data.colors.map(c => `
-                <div class="bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2">
-                    <span class="text-[11px] font-bold text-slate-700">${c.en}</span>
-                    <span class="text-[9px] text-slate-300">|</span>
-                    <span class="text-[10px] text-slate-400">${c.zh}</span>
-                </div>
-            `).join('');
+    function renderResults(data) {
+      $('output').classList.remove('hidden');
 
-            // 4. SEO
-            document.getElementById('seoTitle').innerText = data.seo.en_t;
-            document.getElementById('seoTitleZh').innerText = data.seo.zh_t;
-            document.getElementById('seoDesc').innerText = data.seo.en_d;
-            document.getElementById('seoDescZh').innerText = data.seo.zh_d;
+      // 1) Titles (safe render)
+      $('titleContainer').innerHTML = '';
+      (data.titles || []).forEach(t => {
+        const card = el('div', 'card p-4');
+        const tag = el('span', 'text-[8px] font-black text-indigo-400 bg-indigo-50 px-1.5 py-0.5 rounded mb-2 inline-block uppercase tracking-widest', t?.tag || 'TITLE');
+        const h4 = el('h4', 'text-sm font-bold text-slate-800 leading-tight', t?.en || '');
+        const zh = el('p', 'text-[11px] text-slate-400 italic mt-2', t?.zh || '');
+        card.appendChild(tag);
+        card.appendChild(h4);
+        card.appendChild(zh);
+        $('titleContainer').appendChild(card);
+      });
 
-            // UGC Grid Init
-            document.getElementById('ugcGrid').innerHTML = ugcPrompts.map((p, i) => `
-                <div class="image-grid-item flex flex-col items-center justify-center border-dashed border-2 border-slate-100 text-slate-200" id="ugc-box-${i}">
-                    <i class="fas fa-camera text-xl mb-1"></i>
-                    <span class="text-[8px] font-black uppercase">${p.scene}</span>
-                </div>
-            `).join('');
+      // 2) Description (safe render)
+      $('descEn').innerHTML = '';
+      $('descZh').innerHTML = '';
+      const enS = el('p', '', data?.desc?.en_s || '');
+      const enF = el('p', '', '');
+      enF.appendChild(el('strong', '', 'Fabric: '));
+      enF.appendChild(document.createTextNode(data?.desc?.en_f || ''));
+      const enR = el('p', '', '');
+      enR.appendChild(el('strong', '', 'Model: '));
+      enR.appendChild(document.createTextNode(data?.desc?.en_r || ''));
+      $('descEn').appendChild(enS);
+      $('descEn').appendChild(enF);
+      $('descEn').appendChild(enR);
+
+      $('descZh').appendChild(el('p', '', data?.desc?.zh_s || ''));
+      $('descZh').appendChild(el('p', '', `材质: ${data?.desc?.zh_f || ''}`));
+      $('descZh').appendChild(el('p', '', `尺码信息: ${data?.desc?.zh_r || ''}`));
+
+      // 2.5) Style Description (3-section format)
+      $('styleDescContainer').innerHTML = '';
+      const styleDesc = data?.styleDesc;
+      if (styleDesc) {
+        ['section1', 'section2', 'section3'].forEach((sectionKey, idx) => {
+          const section = styleDesc[sectionKey];
+          if (!section) return;
+          
+          const sectionDiv = el('div', 'pb-5 border-b border-slate-100 last:border-0 last:pb-0');
+          const title = el('h4', 'text-sm font-bold text-purple-900 mb-2', section?.title || '');
+          const line1 = el('p', 'text-[13px] text-slate-600 leading-relaxed', section?.line1 || '');
+          const line2 = el('p', 'text-[13px] text-slate-600 leading-relaxed mt-1', section?.line2 || '');
+          
+          sectionDiv.appendChild(title);
+          sectionDiv.appendChild(line1);
+          sectionDiv.appendChild(line2);
+          $('styleDescContainer').appendChild(sectionDiv);
+        });
+      }
+
+      // 3) Colors
+      $('colorContainer').innerHTML = '';
+      (data.colors || []).forEach(c => {
+        const pill = el('div', 'bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2');
+        pill.appendChild(el('span', 'text-[11px] font-bold text-slate-700', c?.en || ''));
+        pill.appendChild(el('span', 'text-[9px] text-slate-300', '|'));
+        pill.appendChild(el('span', 'text-[10px] text-slate-400', c?.zh || ''));
+        $('colorContainer').appendChild(pill);
+      });
+
+      // 4) SEO
+      $('seoTitle').innerText = data?.seo?.en_t || '';
+      $('seoTitleZh').innerText = data?.seo?.zh_t || '';
+      $('seoDesc').innerText = data?.seo?.en_d || '';
+      $('seoDescZh').innerText = data?.seo?.zh_d || '';
+
+      // UGC Grid Init
+      $('ugcGrid').innerHTML = '';
+      ugcPrompts.forEach((p, i) => {
+        const box = el('div', 'image-grid-item flex flex-col items-center justify-center border-dashed border-2 border-slate-100 text-slate-200');
+        box.id = `ugc-box-${i}`;
+        box.appendChild(el('i', 'fas fa-camera text-xl mb-1'));
+        box.appendChild(el('span', 'text-[8px] font-black uppercase', p?.scene || `SCENE ${i + 1}`));
+        $('ugcGrid').appendChild(box);
+      });
+    }
+
+    // --- Visual Engine Logic (Nano Banana) ---
+    async function runWithConcurrency(items, limit, worker) {
+      let idx = 0;
+      const results = new Array(items.length);
+      const runners = new Array(Math.min(limit, items.length)).fill(0).map(async () => {
+        while (idx < items.length) {
+          const cur = idx++;
+          results[cur] = await worker(items[cur], cur);
         }
+      });
+      await Promise.all(runners);
+      return results;
+    }
 
-        // --- Visual Engine Logic (Nano Banana) ---
-        document.getElementById('generateUgcBtn').onclick = async () => {
-            const btn = document.getElementById('generateUgcBtn');
-            const status = document.getElementById('ugcStatus');
-            btn.disabled = true;
-            status.classList.remove('hidden');
-            status.innerText = "视觉引擎正在合成高清买家秀图片...";
+    function setUgcTileLoading(i) {
+      const box = $(`ugc-box-${i}`);
+      if (!box) return;
+      box.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center bg-slate-50 animate-pulse"><i class="fas fa-spinner fa-spin text-amber-300 mb-1"></i><span class="text-[8px] text-amber-400 uppercase font-black">Rendering</span></div>`;
+    }
 
-            const baseImg = uploadedImages[0];
+    function setUgcTileFailed(i) {
+      const box = $(`ugc-box-${i}`);
+      if (!box) return;
+      box.innerHTML = `<div class="text-[8px] text-red-300 font-bold px-2 text-center">FAILED TO RENDER</div>`;
+    }
 
-            for (let i = 0; i < ugcPrompts.length; i++) {
-                const box = document.getElementById(`ugc-box-${i}`);
-                box.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center bg-slate-50 animate-pulse"><i class="fas fa-spinner fa-spin text-amber-300 mb-1"></i><span class="text-[8px] text-amber-400 uppercase font-black">Rendering</span></div>`;
-                
-                try {
-                    const res = await callEngine('image', {
-                        contents: [{
-                            parts: [
-                                { inlineData: { mimeType: baseImg.mimeType, data: baseImg.base64 } },
-                                { text: `High quality UGC/lifestyle photo. The person is wearing the exact same garment from the reference image. Style: ${ugcPrompts[i].prompt}. Photorealistic, 4k, natural lighting.` }
-                            ]
-                        }],
-                        generationConfig: { responseModalities: ["IMAGE"] }
-                    });
-                    
-                    const imgData = res.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
-                    if (imgData) {
-                        box.innerHTML = `
-                            <img src="data:image/png;base64,${imgData}">
-                            <div class="image-overlay">
-                                <button onclick="window.open(this.parentElement.previousElementSibling.src)" class="text-white text-[10px] font-black bg-black/40 px-3 py-1.5 rounded-full hover:bg-black/60 transition-all">PREVIEW</button>
-                            </div>
-                        `;
-                    } else {
-                        throw new Error("No image data");
-                    }
-                } catch (e) {
-                    box.innerHTML = `<div class="text-[8px] text-red-300 font-bold px-2 text-center">FAILED TO RENDER</div>`;
-                }
-            }
-            status.innerText = "视觉引擎图库生成完成！";
-            btn.disabled = false;
-        };
+    function setUgcTileImage(i, imgData) {
+      const box = $(`ugc-box-${i}`);
+      if (!box) return;
+      const src = `data:image/png;base64,${imgData}`;
+      box.innerHTML = `
+        <img src="${src}">
+        <div class="image-overlay">
+          <button class="text-white text-[10px] font-black bg-black/40 px-3 py-1.5 rounded-full hover:bg-black/60 transition-all">PREVIEW</button>
+        </div>
+      `;
+      box.querySelector('button')?.addEventListener('click', () => window.open(src));
+    }
 
-        // --- Utils ---
-        function showMessage(text, type = "info") {
-            const msg = document.createElement('div');
-            msg.className = `fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full text-xs font-bold shadow-xl z-50 transition-all transform translate-y-20 ${type === 'error' ? 'bg-red-600 text-white' : 'bg-slate-900 text-white'}`;
-            msg.innerText = text;
-            document.body.appendChild(msg);
-            setTimeout(() => { msg.classList.remove('translate-y-20'); }, 10);
-            setTimeout(() => { 
-                msg.classList.add('translate-y-20');
-                setTimeout(() => msg.remove(), 500);
-            }, 3000);
+    async function generateUgc() {
+      if (!ugcPrompts.length) return showMessage("请先生成文案，得到 UGC 场景后再生成图库", "error");
+      if (!uploadedImages.length) return showMessage("请先上传主图", "error");
+      clearError();
+
+      const btn = $('generateUgcBtn');
+      const cancelBtn = $('cancelUgcBtn');
+      const status = $('ugcStatus');
+      btn.disabled = true;
+      cancelBtn.classList.remove('hidden');
+      status.classList.remove('hidden');
+      status.innerText = "视觉引擎正在合成高清买家秀图片...";
+
+      if (ugcAbort) ugcAbort.abort('replaced');
+      ugcAbort = new AbortController();
+      cancelBtn.onclick = () => ugcAbort.abort('user_cancel');
+
+      const baseImg = uploadedImages[0];
+      const total = ugcPrompts.length;
+      let done = 0;
+
+      await runWithConcurrency(ugcPrompts, 2, async (p, i) => {
+        if (ugcAbort.signal.aborted) return;
+        setUgcTileLoading(i);
+        try {
+          const res = await callEngine('image', {
+            contents: [{
+              parts: [
+                { inlineData: { mimeType: baseImg.mimeType, data: baseImg.base64 } },
+                { text: `High quality UGC/lifestyle photo. The person is wearing the exact same garment from the reference image. Style: ${p?.prompt || ''}. Photorealistic, 4k, natural lighting.` }
+              ]
+            }],
+            generationConfig: { responseModalities: ["IMAGE"] }
+          }, { signal: ugcAbort.signal });
+
+          const imgData = res?.candidates?.[0]?.content?.parts?.find(x => x?.inlineData)?.inlineData?.data;
+          if (!imgData) throw new Error("No image data");
+          setUgcTileImage(i, imgData);
+        } catch (e) {
+          if (ugcAbort.signal.aborted) return;
+          setUgcTileFailed(i);
+        } finally {
+          done += 1;
+          status.innerText = ugcAbort.signal.aborted ? "已停止生成" : `生成中... ${done}/${total}`;
         }
+      });
 
-        function copyText(id) {
-            const el = document.getElementById(id);
-            const range = document.createRange();
-            range.selectNode(el);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
-            document.execCommand('copy');
-            window.getSelection().removeAllRanges();
-            showMessage("文本已复制到剪贴板");
-        }
+      if (!ugcAbort.signal.aborted) status.innerText = "视觉引擎图库生成完成！";
+      btn.disabled = false;
+      cancelBtn.classList.add('hidden');
+    }
 
-        function exportData() {
-            if (!currentData) return;
-            const blob = new Blob([JSON.stringify(currentData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Shopify_AI_Pro_${Date.now()}.json`;
-            a.click();
-        }
-    </script>
+    // --- Export ---
+    function exportData() {
+      if (!currentData) return;
+      const blob = new Blob([JSON.stringify(currentData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Shopify_AI_Pro_${Date.now()}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    // --- Wire up events ---
+    window.onload = () => {
+      loadSettings();
+      initPasteSupport();
+      initDragAndDrop();
+
+      $('settingsBtn').addEventListener('click', toggleSettings);
+      $('saveSettingsBtn').addEventListener('click', saveSettings);
+      $('generateBtn').addEventListener('click', generateText);
+      $('generateUgcBtn').addEventListener('click', generateUgc);
+      $('exportBtn').addEventListener('click', exportData);
+
+      $('copyEnglishBtn').addEventListener('click', async () => {
+        const text = ($('descEn')?.innerText || '').trim();
+        if (!text) return;
+        try { await copyToClipboard(text); showMessage("英文描述已复制"); } catch (_) { showMessage("复制失败", "error"); }
+      });
+      $('copySeoBtn').addEventListener('click', async () => {
+        const text = ($('seoContent')?.innerText || '').trim();
+        if (!text) return;
+        try { await copyToClipboard(text); showMessage("SEO 已复制"); } catch (_) { showMessage("复制失败", "error"); }
+      });
+      $('copyAllBtn').addEventListener('click', async () => {
+        if (!currentData) return;
+        try { await copyToClipboard(JSON.stringify(currentData, null, 2)); showMessage("JSON 已复制"); } catch (_) { showMessage("复制失败", "error"); }
+      });
+      $('copyStyleBtn').addEventListener('click', async () => {
+        const container = $('styleDescContainer');
+        if (!container) return;
+        const text = container.innerText.trim();
+        if (!text) return;
+        try { await copyToClipboard(text); showMessage("风格描述已复制"); } catch (_) { showMessage("复制失败", "error"); }
+      });
+    };
+  </script>
 </body>
 </html>
+
