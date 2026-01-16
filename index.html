@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shopify AI Content Pro - Dual Engine Edition</title>
+  <title>Shopify AI Content Pro v1.2</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -17,10 +17,16 @@
       animation: shimmer 1.5s infinite;
     }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-    .image-grid-item { aspect-ratio: 1/1; overflow: hidden; position: relative; border-radius: 0.75rem; background: #f1f5f9; border: 1px solid #e2e8f0; }
+    .image-grid-item { aspect-ratio: 1/1; min-height: 180px; overflow: hidden; position: relative; border-radius: 0.75rem; background: #f1f5f9; border: 1px solid #e2e8f0; }
     .image-grid-item img { width: 100%; height: 100%; object-fit: cover; }
     .image-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
     .image-grid-item:hover .image-overlay { opacity: 1; }
+    /* Size Chart Table Styles */
+    .size-chart-table { border: 1px solid #e5e5e5; background: white; }
+    .size-chart-table th, .size-chart-table td { border: 1px solid #e5e5e5; padding: 10px 14px; text-align: center; }
+    .size-chart-table th { background: #f8f9fa; font-weight: 600; color: #1a1a1a; }
+    .size-chart-table td:first-child { font-weight: 600; text-align: left; background: #fafafa; }
+    .size-chart-table td { color: #333; font-size: 13px; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .drop-active { border-color: #6366f1 !important; background-color: #eef2ff !important; }
@@ -32,9 +38,13 @@
     <header class="flex justify-between items-center mb-8">
       <div>
         <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
-          <i class="fas fa-bolt-lightning text-amber-500"></i> Shopify AI Content Pro
+          <span class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-black shadow-lg">
+            <i class="fas fa-wand-magic-sparkles"></i>
+          </span>
+          Shopify AI Content Pro
+          <span class="text-[10px] font-bold text-white bg-gradient-to-r from-teal-500 to-emerald-500 px-2 py-0.5 rounded-full">v1.2</span>
         </h1>
-        <p class="text-slate-500 text-xs font-medium">双引擎驱动：Gemini 2.5 (文案) + Nano Banana (视觉)</p>
+        <p class="text-slate-500 text-xs font-medium mt-1">双引擎驱动：Gemini 2.5 (文案) + Nano Banana (视觉)</p>
       </div>
       <div class="flex gap-2">
         <button id="settingsBtn" class="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 transition-all shadow-sm" title="设置">
@@ -83,9 +93,14 @@
       <!-- Left: Inputs -->
       <div class="lg:col-span-4 space-y-6">
         <div class="card p-5">
-          <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">1. 产品视觉素材</label>
+          <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center justify-between">
+            <span>1. 产品视觉素材</span>
+            <span id="productPasteIndicator" class="text-[9px] font-bold text-indigo-500 bg-indigo-50 px-2 py-1 rounded-full">
+              <i class="fas fa-paste"></i> 粘贴目标区
+            </span>
+          </label>
           <div id="dropZoneContainer" class="relative">
-            <label for="imageInput" id="dropZoneLabel" class="flex flex-col items-center justify-center w-full h-44 border-2 border-slate-200 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 hover:border-indigo-300 transition-all group">
+            <label for="imageInput" id="dropZoneLabel" class="flex flex-col items-center justify-center w-full h-44 border-2 border-slate-200 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 hover:border-indigo-300 transition-all group ring-2 ring-indigo-400 ring-offset-2">
               <div class="flex flex-col items-center justify-center text-center px-4" id="uploadPlaceholder">
                 <i class="fas fa-cloud-arrow-up text-3xl text-slate-300 group-hover:text-indigo-500 mb-3 transition-colors"></i>
                 <p class="text-[12px] text-slate-600 font-bold">点击上传 或 拖入主图</p>
@@ -168,6 +183,23 @@
               <button id="copyStyleBtn" class="text-[10px] text-white/80 hover:text-white uppercase font-bold">Copy</button>
             </div>
             <div class="p-6 space-y-5" id="styleDescContainer"></div>
+            
+            <!-- Chinese Translation Panel -->
+            <div id="styleDescZhPanel" class="hidden border-t border-purple-100">
+              <div class="bg-purple-50 px-5 py-2 flex justify-between items-center">
+                <span class="text-[10px] font-bold text-purple-700">
+                  <i class="fas fa-language"></i> 中文翻译 (供运营核对)
+                </span>
+                <button id="copyStyleZhBtn" class="text-[9px] bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 transition-all">
+                  <i class="fas fa-copy"></i> 复制
+                </button>
+              </div>
+              <div class="p-5 space-y-4" id="styleDescZhContainer">
+                <div class="text-center text-slate-400 text-xs py-4">
+                  <i class="fas fa-spinner fa-spin"></i> 正在翻译...
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- 3. Colors -->
@@ -200,6 +232,100 @@
             </div>
           </div>
 
+          <!-- Size Chart Translation Section -->
+          <div class="pt-8 border-t border-slate-200">
+            <div class="flex items-center justify-between mb-6 gap-3">
+              <div>
+                <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight">Size Chart Translation</h3>
+                <p class="text-[10px] text-slate-400">上传淘宝中文尺码表，自动翻译并生成标准化英文尺码表（含cm/inch双单位）</p>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Upload Area -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-2 flex items-center justify-between">
+                  <span><i class="fas fa-table"></i> 上传中文尺码表</span>
+                  <span id="sizeChartPasteIndicator" class="hidden text-[9px] font-bold text-teal-600 bg-teal-100 px-2 py-1 rounded-full">
+                    <i class="fas fa-paste"></i> 粘贴目标区
+                  </span>
+                </label>
+                <div class="relative">
+                  <label for="sizeChartInput" id="sizeChartDropZone" class="flex flex-col items-center justify-center w-full h-48 border-2 border-teal-200 border-dashed rounded-xl cursor-pointer bg-teal-50/30 hover:bg-teal-50 transition-all">
+                    <div id="sizeChartPlaceholder" class="flex flex-col items-center justify-center text-center px-4">
+                      <i class="fas fa-table text-3xl text-teal-300 mb-3"></i>
+                      <p class="text-[12px] text-teal-700 font-bold">点击或拖入淘宝尺码表图片</p>
+                      <p class="text-[10px] text-teal-500 mt-1">也支持粘贴截图</p>
+                      <p class="text-[8px] text-teal-400 mt-1">点击此区域激活粘贴功能</p>
+                    </div>
+                    <div id="sizeChartPreviewContainer" class="hidden w-full h-full p-2">
+                      <img id="sizeChartPreview" src="" class="w-full h-full object-contain rounded-lg">
+                    </div>
+                    <input id="sizeChartInput" type="file" class="hidden" accept="image/*" />
+                  </label>
+                </div>
+                <div class="mt-3 flex gap-2">
+                  <button id="translateSizeChartBtn" class="flex-1 bg-teal-500 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-teal-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i class="fas fa-language"></i> 翻译尺码表
+                  </button>
+                  <button id="clearSizeChartBtn" class="px-4 bg-slate-200 text-slate-600 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-300 transition-all hidden">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Result Area -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-2">
+                  <i class="fas fa-check-circle"></i> 翻译结果
+                </label>
+                <div id="sizeChartResultContainer" class="w-full min-h-48 border-2 border-slate-200 rounded-xl bg-white overflow-hidden">
+                  <div id="sizeChartResultPlaceholder" class="text-center px-4 py-12">
+                    <i class="fas fa-arrow-left text-2xl text-slate-300 mb-2"></i>
+                    <p class="text-[11px] text-slate-400">翻译后的尺码表将显示在这里</p>
+                  </div>
+                  <div id="sizeChartResultLoading" class="hidden text-center px-4 py-12">
+                    <i class="fas fa-spinner fa-spin text-2xl text-teal-400 mb-2"></i>
+                    <p id="sizeChartLoadingText" class="text-[11px] text-teal-600 font-bold mb-3">正在识别尺码表...</p>
+                    <!-- Progress bar -->
+                    <div class="w-48 mx-auto bg-gray-200 rounded-full h-2 mb-2">
+                      <div id="sizeChartProgress" class="bg-teal-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                  </div>
+                  <!-- HTML Table Result -->
+                  <div id="sizeChartTableWrapper" class="hidden p-4 overflow-x-auto">
+                    <table id="sizeChartTable" class="size-chart-table w-full border-collapse text-sm">
+                      <!-- Dynamic table content -->
+                    </table>
+                  </div>
+                </div>
+                <div id="sizeChartActions" class="mt-3 flex gap-2 hidden">
+                  <button id="copySizeChartHtmlBtn" class="flex-1 bg-teal-500 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-teal-600 transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-code"></i> 复制 HTML
+                  </button>
+                  <button id="downloadSizeChartBtn" class="flex-1 bg-green-500 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-green-600 transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-download"></i> 下载图片
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Translation Data Preview -->
+            <div id="sizeChartDataPanel" class="hidden bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-white/50 p-4">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-bold text-slate-700">
+                  <i class="fas fa-language text-teal-500"></i> 翻译核对 (中 → 英)
+                </h3>
+                <button id="copySizeChartDataBtn" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition-all">
+                  <i class="fas fa-copy"></i> 复制
+                </button>
+              </div>
+              <div id="sizeChartDataContent" class="text-xs text-slate-600 space-y-2 max-h-48 overflow-y-auto">
+                <!-- Dynamic content -->
+              </div>
+            </div>
+          </div>
+          
           <!-- Visual UGC Section -->
           <div class="pt-8 border-t border-slate-200">
             <div class="flex items-center justify-between mb-6 gap-3">
@@ -211,13 +337,115 @@
                 <button id="cancelUgcBtn" class="hidden bg-white text-slate-700 px-4 py-2.5 rounded-full text-xs font-black border border-slate-200 hover:border-slate-300 transition-all">
                   <i class="fas fa-ban"></i> 停止
                 </button>
+                <button id="batchDownloadBtn" class="hidden bg-green-500 text-white px-4 py-2.5 rounded-full text-xs font-black shadow-lg shadow-green-100 hover:bg-green-600 transition-all flex items-center gap-2">
+                  <i class="fas fa-download"></i> 批量下载
+                </button>
                 <button id="generateUgcBtn" class="bg-amber-500 text-white px-5 py-2.5 rounded-full text-xs font-black shadow-lg shadow-amber-100 hover:bg-amber-600 transition-all flex items-center gap-2">
                   <i class="fas fa-camera-retro"></i> 生成高清图库
                 </button>
               </div>
             </div>
-            <div id="ugcGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"></div>
+            
+            <!-- UGC Configuration Panel -->
+            <div id="ugcConfigPanel" class="hidden mb-6 p-5 card border-amber-100 bg-amber-50/30">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Taobao Review Images Upload -->
+                <div>
+                  <label class="block text-xs font-bold text-amber-900 mb-2 flex items-center justify-between">
+                    <span><i class="fas fa-image"></i> 淘宝评论区图片 (可选)</span>
+                    <span id="taobaoPasteIndicator" class="hidden text-[9px] font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-full">
+                      <i class="fas fa-paste"></i> 粘贴目标区
+                    </span>
+                  </label>
+                  <div class="relative">
+                    <label for="taobaoImageInput" id="taobaoDropZoneLabel" class="flex flex-col items-center justify-center w-full h-32 border-2 border-amber-200 border-dashed rounded-xl cursor-pointer bg-white hover:bg-amber-50 transition-all">
+                      <div class="flex flex-col items-center justify-center text-center px-4">
+                        <i class="fas fa-cloud-arrow-up text-2xl text-amber-300 mb-2"></i>
+                        <p class="text-[11px] text-amber-700 font-bold">上传淘宝评论图进行欧美化</p>
+                        <p class="text-[9px] text-amber-500 mt-1">支持多张图片，也支持粘贴</p>
+                        <p class="text-[8px] text-amber-400 mt-1">点击此区域激活粘贴功能</p>
+                      </div>
+                      <input id="taobaoImageInput" type="file" class="hidden" accept="image/*" multiple />
+                    </label>
+                  </div>
+                  <div id="taobaoImagePreviews" class="flex gap-2 overflow-x-auto no-scrollbar mt-2 pb-1"></div>
+                </div>
+                
+                <!-- Generation Quantity -->
+                <div>
+                  <label class="block text-xs font-bold text-amber-900 mb-2">
+                    <i class="fas fa-hashtag"></i> 生成数量
+                  </label>
+                  <input id="ugcQuantity" type="number" min="1" max="20" value="5" class="w-full px-4 py-3 rounded-xl border border-amber-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-white">
+                  <p class="text-[9px] text-amber-600 mt-1">建议 1-20 张，每张约需 10-15 秒</p>
+                </div>
+              </div>
+            </div>
+            
+            <div id="ugcGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-4"></div>
             <p id="ugcStatus" class="mt-4 text-[10px] text-slate-400 text-center font-medium italic hidden"></p>
+          </div>
+          
+          <!-- Image Edit Modal -->
+          <div id="imageEditModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+              <div class="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 flex justify-between items-center">
+                <h3 class="text-white font-bold text-lg">
+                  <i class="fas fa-wand-magic-sparkles mr-2"></i>编辑图片
+                </h3>
+                <button id="closeEditModal" class="text-white/80 hover:text-white text-2xl leading-none">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div class="flex-1 overflow-y-auto p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-2">当前图片</label>
+                    <div class="aspect-square rounded-xl overflow-hidden border-2 border-slate-200 bg-slate-50">
+                      <img id="editModalImage" src="" class="w-full h-full object-cover">
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-2">修改要求</label>
+                    <textarea id="editPrompt" rows="8" placeholder="用自然语言描述你想要的修改，例如：&#10;- 换成室外场景&#10;- 让模特笑得更开心一些&#10;- 改成夜晚的氛围&#10;- 背景换成咖啡厅" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm leading-relaxed resize-none"></textarea>
+                    <div class="mt-4 flex gap-2">
+                      <button id="applyEditBtn" class="flex-1 bg-amber-500 text-white py-3 rounded-xl text-sm font-bold hover:bg-amber-600 transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-check"></i> 应用修改
+                      </button>
+                      <button id="cancelEditBtn" class="px-6 bg-slate-200 text-slate-700 py-3 rounded-xl text-sm font-bold hover:bg-slate-300 transition-all">
+                        取消
+                      </button>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-3 italic">
+                      <i class="fas fa-info-circle"></i> 提交后可关闭窗口，生成将在后台继续
+                    </p>
+                  </div>
+                </div>
+                <div id="editLoading" class="hidden mt-6 p-4 bg-amber-50 rounded-xl text-center">
+                  <i class="fas fa-spinner fa-spin text-amber-500 text-2xl mb-2"></i>
+                  <p class="text-sm text-amber-700 font-bold">正在重新生成图片...</p>
+                  <p class="text-[10px] text-amber-600 mt-1">你可以关闭此窗口，生成将在后台继续</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Image Preview Modal -->
+          <div id="imagePreviewModal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+            <button id="closePreviewModal" class="absolute top-4 right-4 text-white/80 hover:text-white text-3xl leading-none z-10">
+              <i class="fas fa-times"></i>
+            </button>
+            <div class="max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center">
+              <img id="previewModalImage" src="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">
+            </div>
+            <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3">
+              <button id="previewDownloadBtn" class="bg-white/20 backdrop-blur text-white px-5 py-2.5 rounded-full text-sm font-bold hover:bg-white/30 transition-all flex items-center gap-2">
+                <i class="fas fa-download"></i> 下载
+              </button>
+              <button id="previewEditBtn" class="bg-amber-500 text-white px-5 py-2.5 rounded-full text-sm font-bold hover:bg-amber-600 transition-all flex items-center gap-2">
+                <i class="fas fa-edit"></i> 编辑
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -228,7 +456,15 @@
     // --- State ---
     let currentData = null;
     let uploadedImages = []; // { base64, mimeType, previewUrl }
+    let taobaoImages = []; // { base64, mimeType, previewUrl }
     let ugcPrompts = [];
+    let generatedUgcImages = []; // { base64, index, prompt }
+    let currentEditingIndex = null;
+    let currentPreviewIndex = null;
+    let activePasteTarget = 'product'; // 'product' or 'taobao' or 'sizechart' - determines where pasted images go
+    let pendingEdits = new Map(); // Track background edit tasks
+    let sizeChartImage = null; // { base64, mimeType }
+    let translatedSizeChart = null; // base64 of result
     const apiKey = ""; // 可由构建/运行时注入（纯静态页面无法真正隐藏密钥）
 
     // Abort controllers
@@ -364,15 +600,91 @@
         for (const item of items) {
           if (item.type && item.type.indexOf('image') !== -1) {
             const blob = item.getAsFile();
-            processFile(blob);
-            found = true;
+            
+            // Route to appropriate handler based on active paste target
+            if (activePasteTarget === 'taobao') {
+              processTaobaoFile(blob);
+              found = true;
+            } else if (activePasteTarget === 'sizechart') {
+              processSizeChartFile(blob);
+              found = true;
+            } else {
+              processFile(blob);
+              found = true;
+            }
           }
         }
-        if (found) showMessage("已从剪贴板粘贴图片");
+        if (found) {
+          const targetNames = {
+            'product': '产品图片区',
+            'taobao': '淘宝评论图片区',
+            'sizechart': '尺码表区'
+          };
+          showMessage(`已从剪贴板粘贴图片到${targetNames[activePasteTarget] || '产品图片区'}`);
+        }
       });
+    }
+    
+    function setActivePasteTarget(target) {
+      activePasteTarget = target;
+      
+      // Update visual indicators - upload zones
+      const productZone = $('dropZoneLabel');
+      const taobaoZone = $('taobaoDropZoneLabel');
+      const sizeChartZone = $('sizeChartDropZone');
+      
+      // Update indicators
+      const productIndicator = $('productPasteIndicator');
+      const taobaoIndicator = $('taobaoPasteIndicator');
+      const sizeChartIndicator = $('sizeChartPasteIndicator');
+      
+      // Reset all zones
+      if (productZone) {
+        productZone.classList.remove('ring-2', 'ring-indigo-400', 'ring-offset-2');
+      }
+      if (taobaoZone) {
+        taobaoZone.classList.remove('ring-2', 'ring-amber-400', 'ring-offset-2');
+      }
+      if (sizeChartZone) {
+        sizeChartZone.classList.remove('ring-2', 'ring-teal-400', 'ring-offset-2');
+      }
+      if (productIndicator) {
+        productIndicator.classList.add('hidden');
+      }
+      if (taobaoIndicator) {
+        taobaoIndicator.classList.add('hidden');
+      }
+      if (sizeChartIndicator) {
+        sizeChartIndicator.classList.add('hidden');
+      }
+      
+      // Activate selected zone
+      if (target === 'product') {
+        if (productZone) {
+          productZone.classList.add('ring-2', 'ring-indigo-400', 'ring-offset-2');
+        }
+        if (productIndicator) {
+          productIndicator.classList.remove('hidden');
+        }
+      } else if (target === 'taobao') {
+        if (taobaoZone) {
+          taobaoZone.classList.add('ring-2', 'ring-amber-400', 'ring-offset-2');
+        }
+        if (taobaoIndicator) {
+          taobaoIndicator.classList.remove('hidden');
+        }
+      } else if (target === 'sizechart') {
+        if (sizeChartZone) {
+          sizeChartZone.classList.add('ring-2', 'ring-teal-400', 'ring-offset-2');
+        }
+        if (sizeChartIndicator) {
+          sizeChartIndicator.classList.remove('hidden');
+        }
+      }
     }
 
     function initDragAndDrop() {
+      // Product image drop zone
       const dropZone = $('dropZoneLabel');
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropZone.addEventListener(eventName, e => {
@@ -382,7 +694,10 @@
       });
 
       ['dragenter', 'dragover'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => dropZone.classList.add('drop-active'), false);
+        dropZone.addEventListener(eventName, () => {
+          dropZone.classList.add('drop-active');
+          setActivePasteTarget('product'); // Auto-switch paste target on drag
+        }, false);
       });
 
       ['dragleave', 'drop'].forEach(eventName => {
@@ -392,6 +707,34 @@
       dropZone.addEventListener('drop', e => {
         const files = e.dataTransfer.files;
         Array.from(files).forEach(processFile);
+      }, false);
+    }
+    
+    function initTaobaoDragAndDrop() {
+      const taobaoZone = $('taobaoDropZoneLabel');
+      if (!taobaoZone) return; // Exit if element doesn't exist yet
+      
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        taobaoZone.addEventListener(eventName, e => {
+          e.preventDefault();
+          e.stopPropagation();
+        }, false);
+      });
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        taobaoZone.addEventListener(eventName, () => {
+          taobaoZone.classList.add('drop-active');
+          setActivePasteTarget('taobao'); // Auto-switch paste target on drag
+        }, false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        taobaoZone.addEventListener(eventName, () => taobaoZone.classList.remove('drop-active'), false);
+      });
+
+      taobaoZone.addEventListener('drop', e => {
+        const files = e.dataTransfer.files;
+        Array.from(files).forEach(processTaobaoFile);
       }, false);
     }
 
@@ -550,6 +893,48 @@
       });
     }
 
+    // --- Taobao Image Handling ---
+    const taobaoImageInput = $('taobaoImageInput');
+    taobaoImageInput.onchange = e => Array.from(e.target.files).forEach(processTaobaoFile);
+
+    async function processTaobaoFile(file) {
+      if (!file || !file.type?.startsWith('image/')) return;
+      if (taobaoImages.length >= 10) return showMessage("最多上传 10 张淘宝评论图片", "error");
+
+      try {
+        const { dataUrl, mimeType } = await fileToDownscaledDataUrl(file);
+        const base64 = dataUrl.split(',')[1];
+        const previewUrl = dataUrl;
+        taobaoImages.push({ base64, mimeType, previewUrl });
+        updateTaobaoPreviews();
+      } catch (e) {
+        showMessage("图片处理失败，请换一张或降低图片大小", "error");
+      }
+    }
+
+    function removeTaobaoImageAt(i) {
+      taobaoImages.splice(i, 1);
+      updateTaobaoPreviews();
+    }
+
+    function updateTaobaoPreviews() {
+      $('taobaoImagePreviews').innerHTML = '';
+      taobaoImages.forEach((img, i) => {
+        const wrap = el('div', 'relative w-16 h-16 rounded-lg overflow-hidden border border-amber-200 shrink-0 shadow-sm bg-white');
+        const image = document.createElement('img');
+        image.src = img.previewUrl;
+        image.className = 'w-full h-full object-cover';
+        const btn = document.createElement('button');
+        btn.className = 'absolute top-0 right-0 bg-red-500 text-white w-4 h-4 flex items-center justify-center text-[8px] hover:bg-red-600';
+        btn.title = '移除';
+        btn.innerHTML = '<i class="fas fa-times"></i>';
+        btn.addEventListener('click', () => removeTaobaoImageAt(i));
+        wrap.appendChild(image);
+        wrap.appendChild(btn);
+        $('taobaoImagePreviews').appendChild(wrap);
+      });
+    }
+
     // --- Main Generation Flow ---
     async function generateText() {
       if (uploadedImages.length === 0) return showMessage("请至少上传一张产品图片", "error");
@@ -660,8 +1045,13 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
 
       // 2.5) Style Description (3-section format)
       $('styleDescContainer').innerHTML = '';
+      $('styleDescZhContainer').innerHTML = '<div class="text-center text-slate-400 text-xs py-4"><i class="fas fa-spinner fa-spin"></i> 正在翻译...</div>';
       const styleDesc = data?.styleDesc;
       if (styleDesc) {
+        // Store for translation
+        window.currentStyleDesc = styleDesc;
+        $('styleDescZhPanel').classList.remove('hidden');
+        
         ['section1', 'section2', 'section3'].forEach((sectionKey, idx) => {
           const section = styleDesc[sectionKey];
           if (!section) return;
@@ -676,6 +1066,11 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
           sectionDiv.appendChild(line2);
           $('styleDescContainer').appendChild(sectionDiv);
         });
+        
+        // Auto-translate after rendering
+        translateStyleDesc();
+      } else {
+        $('styleDescZhPanel').classList.add('hidden');
       }
 
       // 3) Colors
@@ -694,15 +1089,31 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
       $('seoDesc').innerText = data?.seo?.en_d || '';
       $('seoDescZh').innerText = data?.seo?.zh_d || '';
 
-      // UGC Grid Init
+      // UGC Grid Init - Show config panel
+      $('ugcConfigPanel').classList.remove('hidden');
       $('ugcGrid').innerHTML = '';
-      ugcPrompts.forEach((p, i) => {
-        const box = el('div', 'image-grid-item flex flex-col items-center justify-center border-dashed border-2 border-slate-100 text-slate-200');
-        box.id = `ugc-box-${i}`;
-        box.appendChild(el('i', 'fas fa-camera text-xl mb-1'));
-        box.appendChild(el('span', 'text-[8px] font-black uppercase', p?.scene || `SCENE ${i + 1}`));
-        $('ugcGrid').appendChild(box);
-      });
+      generatedUgcImages = [];
+      $('batchDownloadBtn').classList.add('hidden');
+      
+      // Initialize taobao drag and drop and paste target switching (only once)
+      setTimeout(() => {
+        initTaobaoDragAndDrop();
+        
+        // Wire up taobao zone events if not already done
+        const taobaoZone = $('taobaoDropZoneLabel');
+        if (taobaoZone && !taobaoZone.dataset.initialized) {
+          taobaoZone.addEventListener('click', () => setActivePasteTarget('taobao'));
+          taobaoZone.addEventListener('mouseenter', () => {
+            if (activePasteTarget !== 'taobao') {
+              taobaoZone.style.opacity = '0.8';
+            }
+          });
+          taobaoZone.addEventListener('mouseleave', () => {
+            taobaoZone.style.opacity = '1';
+          });
+          taobaoZone.dataset.initialized = 'true';
+        }
+      }, 100);
     }
 
     // --- Visual Engine Logic (Nano Banana) ---
@@ -731,22 +1142,51 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
       box.innerHTML = `<div class="text-[8px] text-red-300 font-bold px-2 text-center">FAILED TO RENDER</div>`;
     }
 
-    function setUgcTileImage(i, imgData) {
+    function setUgcTileImage(i, imgData, prompt) {
       const box = $(`ugc-box-${i}`);
       if (!box) return;
       const src = `data:image/png;base64,${imgData}`;
+      
+      // Store generated image
+      generatedUgcImages[i] = { base64: imgData, index: i, prompt: prompt };
+      
       box.innerHTML = `
         <img src="${src}">
         <div class="image-overlay">
-          <button class="text-white text-[10px] font-black bg-black/40 px-3 py-1.5 rounded-full hover:bg-black/60 transition-all">PREVIEW</button>
+          <div class="flex gap-2">
+            <button class="preview-btn text-white text-[10px] font-black bg-black/40 px-3 py-1.5 rounded-full hover:bg-black/60 transition-all">
+              <i class="fas fa-eye"></i> 预览
+            </button>
+            <button class="edit-btn text-white text-[10px] font-black bg-amber-500/80 px-3 py-1.5 rounded-full hover:bg-amber-600/90 transition-all">
+              <i class="fas fa-edit"></i> 编辑
+            </button>
+            <button class="download-btn text-white text-[10px] font-black bg-green-500/80 px-3 py-1.5 rounded-full hover:bg-green-600/90 transition-all">
+              <i class="fas fa-download"></i>
+            </button>
+          </div>
         </div>
       `;
-      box.querySelector('button')?.addEventListener('click', () => window.open(src));
+      box.querySelector('.preview-btn')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openPreviewModal(i);
+      });
+      box.querySelector('.edit-btn')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openEditModal(i);
+      });
+      box.querySelector('.download-btn')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        downloadSingleImage(imgData, i);
+      });
+      
+      // Show batch download button if at least one image is generated
+      $('batchDownloadBtn').classList.remove('hidden');
     }
 
     async function generateUgc() {
-      if (!ugcPrompts.length) return showMessage("请先生成文案，得到 UGC 场景后再生成图库", "error");
-      if (!uploadedImages.length) return showMessage("请先上传主图", "error");
+      if (!uploadedImages.length && !taobaoImages.length) {
+        return showMessage("请先上传主图或淘宝评论图片", "error");
+      }
       clearError();
 
       const btn = $('generateUgcBtn');
@@ -755,43 +1195,116 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
       btn.disabled = true;
       cancelBtn.classList.remove('hidden');
       status.classList.remove('hidden');
-      status.innerText = "视觉引擎正在合成高清买家秀图片...";
 
       if (ugcAbort) ugcAbort.abort('replaced');
       ugcAbort = new AbortController();
       cancelBtn.onclick = () => ugcAbort.abort('user_cancel');
 
-      const baseImg = uploadedImages[0];
-      const total = ugcPrompts.length;
-      let done = 0;
+      // Determine generation mode
+      const useTaobaoMode = taobaoImages.length > 0;
+      const quantity = parseInt($('ugcQuantity').value) || 5;
+      
+      // Clear previous grid
+      $('ugcGrid').innerHTML = '';
+      generatedUgcImages = [];
+      
+      if (useTaobaoMode) {
+        // Mode 1: Westernize Taobao images
+        status.innerText = "正在欧美化淘宝评论图片...";
+        const total = taobaoImages.length;
+        let done = 0;
 
-      await runWithConcurrency(ugcPrompts, 2, async (p, i) => {
-        if (ugcAbort.signal.aborted) return;
-        setUgcTileLoading(i);
-        try {
-          const res = await callEngine('image', {
-            contents: [{
-              parts: [
-                { inlineData: { mimeType: baseImg.mimeType, data: baseImg.base64 } },
-                { text: `High quality UGC/lifestyle photo. The person is wearing the exact same garment from the reference image. Style: ${p?.prompt || ''}. Photorealistic, 4k, natural lighting.` }
-              ]
-            }],
-            generationConfig: { responseModalities: ["IMAGE"] }
-          }, { signal: ugcAbort.signal });
-
-          const imgData = res?.candidates?.[0]?.content?.parts?.find(x => x?.inlineData)?.inlineData?.data;
-          if (!imgData) throw new Error("No image data");
-          setUgcTileImage(i, imgData);
-        } catch (e) {
-          if (ugcAbort.signal.aborted) return;
-          setUgcTileFailed(i);
-        } finally {
-          done += 1;
-          status.innerText = ugcAbort.signal.aborted ? "已停止生成" : `生成中... ${done}/${total}`;
+        // Create grid boxes
+        for (let i = 0; i < total; i++) {
+          const box = el('div', 'image-grid-item flex flex-col items-center justify-center border-dashed border-2 border-slate-100 text-slate-200');
+          box.id = `ugc-box-${i}`;
+          $('ugcGrid').appendChild(box);
         }
-      });
 
-      if (!ugcAbort.signal.aborted) status.innerText = "视觉引擎图库生成完成！";
+        await runWithConcurrency(taobaoImages, 2, async (img, i) => {
+          if (ugcAbort.signal.aborted) return;
+          setUgcTileLoading(i);
+          try {
+            const westernizePrompt = "Transform this image into a Western/European style UGC photo. Change the model to a Caucasian person with Western features, maintain the same clothing and pose, use natural Western lifestyle photography aesthetic, professional lighting, 4k quality.";
+            
+            const res = await callEngine('image', {
+              contents: [{
+                parts: [
+                  { inlineData: { mimeType: img.mimeType, data: img.base64 } },
+                  { text: westernizePrompt }
+                ]
+              }],
+              generationConfig: { responseModalities: ["IMAGE"] }
+            }, { signal: ugcAbort.signal });
+
+            const imgData = res?.candidates?.[0]?.content?.parts?.find(x => x?.inlineData)?.inlineData?.data;
+            if (!imgData) throw new Error("No image data");
+            setUgcTileImage(i, imgData, westernizePrompt);
+          } catch (e) {
+            if (ugcAbort.signal.aborted) return;
+            setUgcTileFailed(i);
+          } finally {
+            done += 1;
+            status.innerText = ugcAbort.signal.aborted ? "已停止生成" : `欧美化中... ${done}/${total}`;
+          }
+        });
+
+        if (!ugcAbort.signal.aborted) status.innerText = "欧美化完成！";
+      } else {
+        // Mode 2: Generate from product images with prompts
+        if (!ugcPrompts.length) {
+          return showMessage("请先生成文案，得到 UGC 场景后再生成图库", "error");
+        }
+        
+        status.innerText = "视觉引擎正在合成高清买家秀图片...";
+        const baseImg = uploadedImages[0];
+        
+        // Generate specified quantity, cycling through prompts if needed
+        const tasks = [];
+        for (let i = 0; i < quantity; i++) {
+          const promptIndex = i % ugcPrompts.length;
+          tasks.push({ prompt: ugcPrompts[promptIndex], index: i });
+        }
+        
+        // Create grid boxes
+        for (let i = 0; i < quantity; i++) {
+          const box = el('div', 'image-grid-item flex flex-col items-center justify-center border-dashed border-2 border-slate-100 text-slate-200');
+          box.id = `ugc-box-${i}`;
+          $('ugcGrid').appendChild(box);
+        }
+
+        let done = 0;
+        await runWithConcurrency(tasks, 2, async (task, i) => {
+          if (ugcAbort.signal.aborted) return;
+          setUgcTileLoading(task.index);
+          try {
+            const fullPrompt = `High quality UGC/lifestyle photo. The person is wearing the exact same garment from the reference image. Style: ${task.prompt?.prompt || ''}. Photorealistic, 4k, natural lighting.`;
+            
+            const res = await callEngine('image', {
+              contents: [{
+                parts: [
+                  { inlineData: { mimeType: baseImg.mimeType, data: baseImg.base64 } },
+                  { text: fullPrompt }
+                ]
+              }],
+              generationConfig: { responseModalities: ["IMAGE"] }
+            }, { signal: ugcAbort.signal });
+
+            const imgData = res?.candidates?.[0]?.content?.parts?.find(x => x?.inlineData)?.inlineData?.data;
+            if (!imgData) throw new Error("No image data");
+            setUgcTileImage(task.index, imgData, fullPrompt);
+          } catch (e) {
+            if (ugcAbort.signal.aborted) return;
+            setUgcTileFailed(task.index);
+          } finally {
+            done += 1;
+            status.innerText = ugcAbort.signal.aborted ? "已停止生成" : `生成中... ${done}/${quantity}`;
+          }
+        });
+
+        if (!ugcAbort.signal.aborted) status.innerText = "视觉引擎图库生成完成！";
+      }
+
       btn.disabled = false;
       cancelBtn.classList.add('hidden');
     }
@@ -808,6 +1321,696 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
+    // --- Image Download Functions ---
+    function downloadSingleImage(base64Data, index) {
+      const link = document.createElement('a');
+      link.href = `data:image/png;base64,${base64Data}`;
+      link.download = `UGC_Image_${index + 1}_${Date.now()}.png`;
+      link.click();
+      showMessage("图片已下载");
+    }
+
+    async function batchDownloadImages() {
+      const validImages = generatedUgcImages.filter(img => img && img.base64);
+      if (validImages.length === 0) {
+        return showMessage("没有可下载的图片", "error");
+      }
+
+      showMessage(`正在下载 ${validImages.length} 张图片...`);
+      
+      // Download each image with a small delay to avoid browser blocking
+      for (let i = 0; i < validImages.length; i++) {
+        const img = validImages[i];
+        const link = document.createElement('a');
+        link.href = `data:image/png;base64,${img.base64}`;
+        link.download = `UGC_Image_${img.index + 1}_${Date.now()}.png`;
+        link.click();
+        
+        // Small delay between downloads
+        if (i < validImages.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+      }
+      
+      showMessage(`成功下载 ${validImages.length} 张图片！`);
+    }
+
+    // --- Image Preview Modal Functions ---
+    function openPreviewModal(index) {
+      const img = generatedUgcImages[index];
+      if (!img) return;
+      
+      currentPreviewIndex = index;
+      $('previewModalImage').src = `data:image/png;base64,${img.base64}`;
+      $('imagePreviewModal').classList.remove('hidden');
+    }
+
+    function closePreviewModal() {
+      $('imagePreviewModal').classList.add('hidden');
+      currentPreviewIndex = null;
+    }
+
+    // --- Image Edit Modal Functions ---
+    function openEditModal(index) {
+      const img = generatedUgcImages[index];
+      if (!img) return;
+      
+      currentEditingIndex = index;
+      $('editModalImage').src = `data:image/png;base64,${img.base64}`;
+      $('editPrompt').value = '';
+      $('editLoading').classList.add('hidden');
+      $('applyEditBtn').disabled = false;
+      $('imageEditModal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+      $('imageEditModal').classList.add('hidden');
+      // Don't reset currentEditingIndex if there's a pending edit
+      if (!pendingEdits.has(currentEditingIndex)) {
+        currentEditingIndex = null;
+      }
+    }
+
+    async function applyImageEdit() {
+      if (currentEditingIndex === null) return;
+      
+      const editPrompt = $('editPrompt').value.trim();
+      if (!editPrompt) {
+        return showMessage("请输入修改要求", "error");
+      }
+
+      const img = generatedUgcImages[currentEditingIndex];
+      if (!img) return;
+
+      const editLoading = $('editLoading');
+      const applyBtn = $('applyEditBtn');
+      const editIndex = currentEditingIndex; // Capture for closure
+      
+      editLoading.classList.remove('hidden');
+      applyBtn.disabled = true;
+
+      // Mark as pending edit
+      pendingEdits.set(editIndex, true);
+      
+      // Set the tile to loading state immediately
+      setUgcTileLoading(editIndex);
+
+      // Start background generation
+      const generateInBackground = async () => {
+        try {
+          // Use the original prompt as base and add user's modification
+          const modifiedPrompt = `${img.prompt}\n\nAdditional modifications: ${editPrompt}`;
+          
+          // Determine base image
+          const baseImg = uploadedImages.length > 0 ? uploadedImages[0] : 
+                         (taobaoImages.length > 0 ? taobaoImages[0] : null);
+          
+          if (!baseImg) {
+            throw new Error("没有找到基础图片");
+          }
+
+          const res = await callEngine('image', {
+            contents: [{
+              parts: [
+                { inlineData: { mimeType: baseImg.mimeType, data: baseImg.base64 } },
+                { text: modifiedPrompt }
+              ]
+            }],
+            generationConfig: { responseModalities: ["IMAGE"] }
+          });
+
+          const imgData = res?.candidates?.[0]?.content?.parts?.find(x => x?.inlineData)?.inlineData?.data;
+          if (!imgData) throw new Error("生成失败");
+
+          // Update the image in the grid
+          setUgcTileImage(editIndex, imgData, modifiedPrompt);
+          
+          showMessage("图片已更新！");
+        } catch (e) {
+          setUgcTileFailed(editIndex);
+          showMessage(e?.message || "修改失败", "error");
+        } finally {
+          pendingEdits.delete(editIndex);
+        }
+      };
+
+      // Start generation in background
+      generateInBackground();
+      
+      // Close modal immediately so user can continue
+      showMessage("已开始生成，你可以关闭窗口继续其他操作");
+      
+      // Reset UI but keep modal open briefly to show feedback
+      setTimeout(() => {
+        editLoading.classList.add('hidden');
+        applyBtn.disabled = false;
+        closeEditModal();
+      }, 500);
+    }
+
+    // --- Size Chart Translation Functions ---
+    async function processSizeChartFile(file) {
+      if (!file || !file.type?.startsWith('image/')) return;
+      
+      try {
+        const { dataUrl, mimeType } = await fileToDownscaledDataUrl(file);
+        const base64 = dataUrl.split(',')[1];
+        sizeChartImage = { base64, mimeType, previewUrl: dataUrl };
+        
+        // Show preview
+        $('sizeChartPlaceholder').classList.add('hidden');
+        $('sizeChartPreviewContainer').classList.remove('hidden');
+        $('sizeChartPreview').src = dataUrl;
+        $('translateSizeChartBtn').disabled = false;
+        $('clearSizeChartBtn').classList.remove('hidden');
+        
+        showMessage("尺码表图片已上传");
+      } catch (e) {
+        showMessage("图片处理失败", "error");
+      }
+    }
+
+    function clearSizeChart() {
+      sizeChartImage = null;
+      translatedSizeChart = null;
+      window.sizeChartTranslatedData = null;
+      
+      // Reset upload area
+      $('sizeChartPlaceholder').classList.remove('hidden');
+      $('sizeChartPreviewContainer').classList.add('hidden');
+      $('sizeChartPreview').src = '';
+      $('translateSizeChartBtn').disabled = true;
+      $('clearSizeChartBtn').classList.add('hidden');
+      
+      // Reset result area
+      $('sizeChartResultPlaceholder').classList.remove('hidden');
+      $('sizeChartResultLoading').classList.add('hidden');
+      $('sizeChartTableWrapper').classList.add('hidden');
+      $('sizeChartTable').innerHTML = '';
+      $('sizeChartActions').classList.add('hidden');
+      
+      // Reset data panel
+      $('sizeChartDataPanel').classList.add('hidden');
+      $('sizeChartDataContent').innerHTML = '';
+      $('sizeChartProgress').style.width = '0%';
+    }
+
+    async function translateSizeChart() {
+      if (!sizeChartImage) {
+        return showMessage("请先上传尺码表图片", "error");
+      }
+      
+      const btn = $('translateSizeChartBtn');
+      btn.disabled = true;
+      
+      // Show loading
+      $('sizeChartResultPlaceholder').classList.add('hidden');
+      $('sizeChartResultLoading').classList.remove('hidden');
+      $('sizeChartTableWrapper').classList.add('hidden');
+      $('sizeChartActions').classList.add('hidden');
+      $('sizeChartDataPanel').classList.add('hidden');
+      
+      // Helper to update progress
+      const updateProgress = (text, percent) => {
+        $('sizeChartLoadingText').textContent = text;
+        $('sizeChartProgress').style.width = percent + '%';
+      };
+
+      // Step 1: Use text model to extract and translate data
+      const extractPrompt = `Analyze this Chinese size chart image and extract ALL measurement data.
+
+CRITICAL: Values can be single numbers (88) or ranges (74-96). Preserve the exact format from the image.
+
+OUTPUT FORMAT (JSON only, no markdown, no code blocks):
+{
+  "productType": "top/bottom/dress/skirt/pants/other",
+  "sizes": ["S", "M", "L", "XL"],
+  "measurements": [
+    {
+      "label_cn": "胸围",
+      "label_en": "Bust",
+      "values": ["88", "92", "96", "100"]
+    },
+    {
+      "label_cn": "腰围",
+      "label_en": "Waist", 
+      "values": ["74-96", "78-100", "82-104", "86-108"]
+    }
+  ]
+}
+
+IMPORTANT RULES:
+1. Values must be STRINGS, preserving ranges like "74-96" exactly
+2. Do NOT convert or calculate - just extract the raw cm numbers
+3. Include ALL rows from the size chart
+4. If a cell has a range like "168-172", keep it as "168-172"
+
+TRANSLATION DICTIONARY:
+尺码/码数/号码 → Size
+身高/适合身高 → Height (Recommended)
+胸围 → Bust/Chest
+肩宽 → Shoulder
+袖长 → Sleeve
+衣长/身长/全长 → Length
+腰围 → Waist
+臀围 → Hip
+裤长/内长 → Inseam
+大腿围/腿围 → Thigh
+小腿围 → Calf
+裙长 → Skirt Length
+下摆 → Hem
+领围 → Neck
+体重 → Weight
+
+Return ONLY valid JSON, no explanation.`;
+
+      try {
+        // Step 1: Extract data with text model
+        updateProgress('正在识别尺码表数据...', 30);
+        
+        const extractRes = await callEngine('text', {
+          contents: [{
+            parts: [
+              { inlineData: { mimeType: sizeChartImage.mimeType, data: sizeChartImage.base64 } },
+              { text: extractPrompt }
+            ]
+          }]
+        });
+
+        const extractedText = extractRes?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        
+        // Parse JSON from response
+        let sizeData;
+        try {
+          // Try to extract JSON from the response
+          const jsonMatch = extractedText.match(/\{[\s\S]*\}/);
+          if (!jsonMatch) throw new Error("无法解析尺码数据");
+          sizeData = JSON.parse(jsonMatch[0]);
+        } catch (parseErr) {
+          throw new Error("尺码数据解析失败，请重试");
+        }
+
+        if (!sizeData.sizes || !sizeData.measurements || sizeData.measurements.length === 0) {
+          throw new Error("未能识别尺码表内容");
+        }
+
+        updateProgress('正在生成表格...', 80);
+
+        // Helper function to convert cm value (single or range) to dual unit format
+        const convertToDualUnit = (val) => {
+          const str = String(val).trim();
+          // Check if it's a range (contains - but not negative)
+          if (str.includes('-') && !str.startsWith('-')) {
+            const parts = str.split('-').map(p => p.trim());
+            if (parts.length === 2) {
+              const low = parseFloat(parts[0]);
+              const high = parseFloat(parts[1]);
+              if (!isNaN(low) && !isNaN(high)) {
+                const lowIn = (low / 2.54).toFixed(1);
+                const highIn = (high / 2.54).toFixed(1);
+                return `${str} cm / ${lowIn}-${highIn} in`;
+              }
+            }
+          }
+          // Single value
+          const num = parseFloat(str);
+          if (!isNaN(num)) {
+            const inches = (num / 2.54).toFixed(1);
+            return `${str} cm / ${inches} in`;
+          }
+          // Can't parse, return as-is
+          return str;
+        };
+
+        // Build HTML table
+        let tableHtml = '<thead><tr><th>Size</th>';
+        for (const size of sizeData.sizes) {
+          tableHtml += `<th>${size}</th>`;
+        }
+        tableHtml += '</tr></thead><tbody>';
+        
+        for (const m of sizeData.measurements) {
+          tableHtml += `<tr><td>${m.label_en}</td>`;
+          for (const v of m.values) {
+            const converted = convertToDualUnit(v);
+            tableHtml += `<td>${converted}</td>`;
+          }
+          tableHtml += '</tr>';
+        }
+        tableHtml += '</tbody>';
+
+        // Build the translation data preview (for verification)
+        let dataPreviewHtml = `<div class="font-bold text-slate-700 mb-2">产品类型: ${sizeData.productType || '未知'}</div>`;
+        dataPreviewHtml += `<div class="font-bold text-slate-700 mb-2">尺码: ${sizeData.sizes.join(' / ')}</div>`;
+        dataPreviewHtml += `<div class="border-t border-slate-200 pt-2 mt-2">`;
+        
+        for (const m of sizeData.measurements) {
+          const valuesWithUnits = m.values.map(v => convertToDualUnit(v));
+          dataPreviewHtml += `<div class="py-1.5 border-b border-slate-100 last:border-0">`;
+          dataPreviewHtml += `<span class="text-slate-500">${m.label_cn}</span> → <span class="font-medium text-teal-700">${m.label_en}</span>`;
+          dataPreviewHtml += `<div class="text-[10px] text-slate-400 mt-0.5">${valuesWithUnits.join(' | ')}</div>`;
+          dataPreviewHtml += `</div>`;
+        }
+        dataPreviewHtml += `</div>`;
+        
+        // Store for copy function (include converted values)
+        window.sizeChartTranslatedData = {
+          ...sizeData,
+          tableHtml: tableHtml,
+          convertedMeasurements: sizeData.measurements.map(m => ({
+            ...m,
+            valuesWithUnits: m.values.map(v => convertToDualUnit(v))
+          }))
+        };
+
+        // Show result
+        updateProgress('完成！', 100);
+        
+        setTimeout(() => {
+          $('sizeChartResultLoading').classList.add('hidden');
+          $('sizeChartTable').innerHTML = tableHtml;
+          $('sizeChartTableWrapper').classList.remove('hidden');
+          $('sizeChartActions').classList.remove('hidden');
+          
+          // Show data preview panel
+          $('sizeChartDataContent').innerHTML = dataPreviewHtml;
+          $('sizeChartDataPanel').classList.remove('hidden');
+        }, 300);
+        
+        showMessage("尺码表翻译完成！");
+      } catch (e) {
+        $('sizeChartResultLoading').classList.add('hidden');
+        $('sizeChartTableWrapper').classList.add('hidden');
+        $('sizeChartResultPlaceholder').classList.remove('hidden');
+        showMessage(e?.message || "翻译失败", "error");
+        console.error("Size chart translation error:", e);
+      } finally {
+        btn.disabled = false;
+        $('sizeChartProgress').style.width = '0%';
+      }
+    }
+
+    async function downloadSizeChart() {
+      const table = $('sizeChartTable');
+      if (!table || !table.innerHTML) return showMessage("没有可下载的内容", "error");
+      
+      showMessage("正在生成图片...");
+      
+      try {
+        // Create a temporary container for better rendering
+        const container = document.createElement('div');
+        container.style.cssText = 'position: absolute; left: -9999px; background: white; padding: 20px;';
+        
+        // Clone the table with inline styles for canvas rendering
+        const tableClone = document.createElement('table');
+        tableClone.style.cssText = 'border-collapse: collapse; font-family: Arial, sans-serif; background: white;';
+        tableClone.innerHTML = table.innerHTML;
+        
+        // Apply inline styles to all cells
+        tableClone.querySelectorAll('th').forEach(th => {
+          th.style.cssText = 'border: 1px solid #e5e5e5; padding: 12px 16px; background: #f8f9fa; font-weight: 600; color: #1a1a1a; text-align: center;';
+        });
+        tableClone.querySelectorAll('td').forEach((td, i) => {
+          if (i % (window.sizeChartTranslatedData?.sizes?.length + 1 || 999) === 0) {
+            td.style.cssText = 'border: 1px solid #e5e5e5; padding: 12px 16px; font-weight: 600; text-align: left; background: #fafafa; color: #333;';
+          } else {
+            td.style.cssText = 'border: 1px solid #e5e5e5; padding: 12px 16px; text-align: center; color: #333; font-size: 13px;';
+          }
+        });
+        
+        container.appendChild(tableClone);
+        document.body.appendChild(container);
+        
+        // Use html2canvas if available, otherwise use a simple approach
+        if (typeof html2canvas !== 'undefined') {
+          const canvas = await html2canvas(container, { backgroundColor: '#ffffff', scale: 2 });
+          const link = document.createElement('a');
+          link.download = `Size_Chart_EN_${Date.now()}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        } else {
+          // Fallback: Generate image using canvas manually
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const data = window.sizeChartTranslatedData;
+          
+          if (!data) throw new Error("没有数据");
+          
+          const cellWidth = 140;
+          const cellHeight = 45;
+          const cols = data.sizes.length + 1;
+          const rows = data.convertedMeasurements.length + 1;
+          
+          canvas.width = cols * cellWidth;
+          canvas.height = rows * cellHeight;
+          
+          // Fill background
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // Draw header row
+          ctx.fillStyle = '#f8f9fa';
+          ctx.fillRect(0, 0, canvas.width, cellHeight);
+          
+          // Draw grid lines
+          ctx.strokeStyle = '#e5e5e5';
+          ctx.lineWidth = 1;
+          
+          for (let i = 0; i <= rows; i++) {
+            ctx.beginPath();
+            ctx.moveTo(0, i * cellHeight);
+            ctx.lineTo(canvas.width, i * cellHeight);
+            ctx.stroke();
+          }
+          for (let j = 0; j <= cols; j++) {
+            ctx.beginPath();
+            ctx.moveTo(j * cellWidth, 0);
+            ctx.lineTo(j * cellWidth, canvas.height);
+            ctx.stroke();
+          }
+          
+          // Draw text
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          // Header row
+          ctx.fillStyle = '#1a1a1a';
+          ctx.font = 'bold 14px Arial';
+          ctx.fillText('Size', cellWidth / 2, cellHeight / 2);
+          data.sizes.forEach((size, i) => {
+            ctx.fillText(size, (i + 1.5) * cellWidth, cellHeight / 2);
+          });
+          
+          // Data rows
+          ctx.font = '13px Arial';
+          data.convertedMeasurements.forEach((m, rowIdx) => {
+            const y = (rowIdx + 1.5) * cellHeight;
+            // First column (label)
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = 'bold 13px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(m.label_en, 10, y);
+            // Data cells
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#333333';
+            ctx.textAlign = 'center';
+            m.valuesWithUnits.forEach((val, colIdx) => {
+              ctx.fillText(val, (colIdx + 1.5) * cellWidth, y);
+            });
+          });
+          
+          const link = document.createElement('a');
+          link.download = `Size_Chart_EN_${Date.now()}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        }
+        
+        document.body.removeChild(container);
+        showMessage("尺码表已下载");
+      } catch (e) {
+        console.error("Download error:", e);
+        showMessage("下载失败: " + (e.message || "未知错误"), "error");
+      }
+    }
+
+    async function copySizeChartHtml() {
+      const data = window.sizeChartTranslatedData;
+      if (!data || !data.tableHtml) return showMessage("没有可复制的内容", "error");
+      
+      // Build complete HTML table with inline styles (for Shopify)
+      let html = '<table style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;">';
+      html += '<thead><tr>';
+      html += '<th style="border: 1px solid #e5e5e5; padding: 10px; background: #f8f9fa; font-weight: 600;">Size</th>';
+      for (const size of data.sizes) {
+        html += `<th style="border: 1px solid #e5e5e5; padding: 10px; background: #f8f9fa; font-weight: 600;">${size}</th>`;
+      }
+      html += '</tr></thead><tbody>';
+      
+      for (const m of data.convertedMeasurements) {
+        html += '<tr>';
+        html += `<td style="border: 1px solid #e5e5e5; padding: 10px; font-weight: 600; background: #fafafa;">${m.label_en}</td>`;
+        for (const val of m.valuesWithUnits) {
+          html += `<td style="border: 1px solid #e5e5e5; padding: 10px; text-align: center;">${val}</td>`;
+        }
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+      
+      try {
+        await copyToClipboard(html);
+        showMessage("HTML 表格已复制，可直接粘贴到 Shopify");
+      } catch (e) {
+        showMessage("复制失败", "error");
+      }
+    }
+
+    async function copySizeChartData() {
+      const data = window.sizeChartTranslatedData;
+      if (!data) return showMessage("没有可复制的数据", "error");
+      
+      // Format as readable text
+      let text = `Product Type: ${data.productType || 'Unknown'}\n`;
+      text += `Sizes: ${data.sizes.join(' / ')}\n\n`;
+      
+      const measurements = data.convertedMeasurements || data.measurements;
+      for (const m of measurements) {
+        const values = m.valuesWithUnits || m.values;
+        text += `${m.label_cn} → ${m.label_en}: ${values.join(' | ')}\n`;
+      }
+      
+      try {
+        await copyToClipboard(text);
+        showMessage("翻译数据已复制");
+      } catch (e) {
+        showMessage("复制失败", "error");
+      }
+    }
+
+    // --- Style Description Translation ---
+    async function translateStyleDesc() {
+      const styleDesc = window.currentStyleDesc;
+      if (!styleDesc) return;
+      
+      // Build English text for translation
+      let englishText = '';
+      ['section1', 'section2', 'section3'].forEach((key, idx) => {
+        const s = styleDesc[key];
+        if (s) {
+          englishText += `Section ${idx + 1}:\n`;
+          englishText += `Title: ${s.title || ''}\n`;
+          englishText += `Line 1: ${s.line1 || ''}\n`;
+          englishText += `Line 2: ${s.line2 || ''}\n\n`;
+        }
+      });
+
+      const translatePrompt = `Translate the following English product style description to Chinese. 
+Keep the same structure (3 sections, each with title + 2 lines).
+Make it sound natural and appealing for Chinese e-commerce.
+
+${englishText}
+
+OUTPUT FORMAT (JSON only, no markdown):
+{
+  "section1": { "title": "中文标题", "line1": "中文描述1", "line2": "中文描述2" },
+  "section2": { "title": "中文标题", "line1": "中文描述1", "line2": "中文描述2" },
+  "section3": { "title": "中文标题", "line1": "中文描述1", "line2": "中文描述2" }
+}`;
+
+      try {
+        const res = await callEngine('text', {
+          contents: [{ parts: [{ text: translatePrompt }] }]
+        });
+        
+        const text = res?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error("翻译失败");
+        
+        const zhData = JSON.parse(jsonMatch[0]);
+        window.currentStyleDescZh = zhData;
+        
+        // Render Chinese translation
+        const container = $('styleDescZhContainer');
+        container.innerHTML = '';
+        
+        ['section1', 'section2', 'section3'].forEach((sectionKey) => {
+          const section = zhData[sectionKey];
+          if (!section) return;
+          
+          const sectionDiv = el('div', 'pb-4 border-b border-purple-100 last:border-0 last:pb-0');
+          const title = el('h4', 'text-sm font-bold text-purple-800 mb-1.5', section?.title || '');
+          const line1 = el('p', 'text-[12px] text-slate-600 leading-relaxed', section?.line1 || '');
+          const line2 = el('p', 'text-[12px] text-slate-600 leading-relaxed mt-0.5', section?.line2 || '');
+          
+          sectionDiv.appendChild(title);
+          sectionDiv.appendChild(line1);
+          sectionDiv.appendChild(line2);
+          container.appendChild(sectionDiv);
+        });
+        
+      } catch (e) {
+        $('styleDescZhContainer').innerHTML = '<div class="text-center text-red-400 text-xs py-4"><i class="fas fa-exclamation-circle"></i> 翻译失败，请重试</div>';
+      }
+    }
+
+    async function copyStyleDescZh() {
+      const data = window.currentStyleDescZh;
+      if (!data) return showMessage("请先翻译", "error");
+      
+      let text = '';
+      ['section1', 'section2', 'section3'].forEach((key, idx) => {
+        const s = data[key];
+        if (s) {
+          text += `【${s.title || ''}】\n`;
+          text += `${s.line1 || ''}\n`;
+          text += `${s.line2 || ''}\n\n`;
+        }
+      });
+      
+      try {
+        await copyToClipboard(text.trim());
+        showMessage("中文翻译已复制");
+      } catch (e) {
+        showMessage("复制失败", "error");
+      }
+    }
+
+    function initSizeChartDragAndDrop() {
+      const dropZone = $('sizeChartDropZone');
+      if (!dropZone) return;
+      
+      // Click to activate paste target
+      dropZone.addEventListener('click', () => {
+        setActivePasteTarget('sizechart');
+      });
+      
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, e => {
+          e.preventDefault();
+          e.stopPropagation();
+        }, false);
+      });
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+          dropZone.classList.add('border-teal-400', 'bg-teal-100');
+          setActivePasteTarget('sizechart');
+        }, false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+          dropZone.classList.remove('border-teal-400', 'bg-teal-100');
+        }, false);
+      });
+
+      dropZone.addEventListener('drop', e => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          processSizeChartFile(files[0]);
+        }
+      }, false);
+    }
+
     // --- Wire up events ---
     window.onload = () => {
       loadSettings();
@@ -819,6 +2022,83 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
       $('generateBtn').addEventListener('click', generateText);
       $('generateUgcBtn').addEventListener('click', generateUgc);
       $('exportBtn').addEventListener('click', exportData);
+      $('batchDownloadBtn').addEventListener('click', batchDownloadImages);
+
+      // Paste target switching - Product zone only (taobao zone initialized in renderResults)
+      const productZone = $('dropZoneLabel');
+      if (productZone) {
+        productZone.addEventListener('click', () => setActivePasteTarget('product'));
+        productZone.addEventListener('mouseenter', () => {
+          if (activePasteTarget !== 'product') {
+            productZone.style.opacity = '0.8';
+          }
+        });
+        productZone.addEventListener('mouseleave', () => {
+          productZone.style.opacity = '1';
+        });
+      }
+
+      // Edit modal events
+      $('closeEditModal').addEventListener('click', closeEditModal);
+      $('cancelEditBtn').addEventListener('click', closeEditModal);
+      $('applyEditBtn').addEventListener('click', applyImageEdit);
+      
+      // Close modal on backdrop click
+      $('imageEditModal').addEventListener('click', (e) => {
+        if (e.target === $('imageEditModal')) closeEditModal();
+      });
+
+      // Preview modal events
+      $('closePreviewModal').addEventListener('click', closePreviewModal);
+      $('imagePreviewModal').addEventListener('click', (e) => {
+        if (e.target === $('imagePreviewModal')) closePreviewModal();
+      });
+      
+      // Preview modal action buttons
+      $('previewDownloadBtn').addEventListener('click', () => {
+        if (currentPreviewIndex !== null) {
+          const img = generatedUgcImages[currentPreviewIndex];
+          if (img) downloadSingleImage(img.base64, currentPreviewIndex);
+        }
+      });
+      
+      $('previewEditBtn').addEventListener('click', () => {
+        if (currentPreviewIndex !== null) {
+          closePreviewModal();
+          openEditModal(currentPreviewIndex);
+        }
+      });
+      
+      // Keyboard support for modals
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (!$('imagePreviewModal').classList.contains('hidden')) {
+            closePreviewModal();
+          }
+          if (!$('imageEditModal').classList.contains('hidden')) {
+            closeEditModal();
+          }
+        }
+      });
+
+      // Size Chart events
+      const sizeChartInput = $('sizeChartInput');
+      if (sizeChartInput) {
+        sizeChartInput.addEventListener('change', e => {
+          if (e.target.files.length > 0) {
+            processSizeChartFile(e.target.files[0]);
+          }
+        });
+      }
+      
+      $('translateSizeChartBtn')?.addEventListener('click', translateSizeChart);
+      $('clearSizeChartBtn')?.addEventListener('click', clearSizeChart);
+      $('downloadSizeChartBtn')?.addEventListener('click', downloadSizeChart);
+      $('copySizeChartHtmlBtn')?.addEventListener('click', copySizeChartHtml);
+      $('copySizeChartDataBtn')?.addEventListener('click', copySizeChartData);
+      
+      // Initialize size chart drag and drop
+      initSizeChartDragAndDrop();
 
       $('copyEnglishBtn').addEventListener('click', async () => {
         const text = ($('descEn')?.innerText || '').trim();
@@ -841,6 +2121,12 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
         if (!text) return;
         try { await copyToClipboard(text); showMessage("风格描述已复制"); } catch (_) { showMessage("复制失败", "error"); }
       });
+      
+      // Style Description translation events
+      $('copyStyleZhBtn')?.addEventListener('click', copyStyleDescZh);
+      
+      // Initialize with product zone as default
+      setActivePasteTarget('product');
     };
   </script>
 </body>
