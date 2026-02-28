@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shopify AI Content Pro v1.2</title>
+  <title>Shopify AI Content Pro v1.3</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -42,9 +42,9 @@
             <i class="fas fa-wand-magic-sparkles"></i>
           </span>
           Shopify AI Content Pro
-          <span class="text-[10px] font-bold text-white bg-gradient-to-r from-teal-500 to-emerald-500 px-2 py-0.5 rounded-full">v1.2</span>
+          <span class="text-[10px] font-bold text-white bg-gradient-to-r from-teal-500 to-emerald-500 px-2 py-0.5 rounded-full">v1.3</span>
         </h1>
-        <p class="text-slate-500 text-xs font-medium mt-1">双引擎驱动：Gemini 2.5 (文案) + Nano Banana (视觉)</p>
+        <p class="text-slate-500 text-xs font-medium mt-1">支持自定义模型 (Gemini 3.1 Pro / 2.5 Flash)</p>
       </div>
       <div class="flex gap-2">
         <button id="settingsBtn" class="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 transition-all shadow-sm" title="设置">
@@ -58,28 +58,30 @@
       <!-- Text Engine Settings -->
       <div class="p-6 card border-indigo-100 bg-indigo-50/30">
         <h3 class="text-sm font-bold text-indigo-900 mb-4 flex items-center gap-2">
-          <i class="fas fa-font"></i> 文案引擎 (Gemini 2.5 Flash)
+          <i class="fas fa-font"></i> 文案引擎配置
         </h3>
         <div class="space-y-3">
           <input id="textApiKey" type="password" placeholder="API Key (本地保存可选)" class="w-full px-4 py-2 rounded-lg border border-indigo-100 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
           <input id="textApiBase" type="text" placeholder="Proxy Base URL (可选，默认 Google)" class="w-full px-4 py-2 rounded-lg border border-indigo-100 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+          <input id="textModelName" type="text" placeholder="自定义模型名 (默认: gemini-2.5-flash-preview-09-2025)" class="w-full px-4 py-2 rounded-lg border border-indigo-100 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
           <label class="flex items-center gap-2 text-[11px] text-slate-600 select-none">
             <input id="rememberTextKey" type="checkbox" class="rounded border-slate-300">
-            记住 API Key（会存到浏览器 localStorage，不推荐在公共电脑使用）
+            记住 API Key（会存到浏览器 localStorage）
           </label>
         </div>
       </div>
       <!-- Visual Engine Settings -->
       <div class="p-6 card border-amber-100 bg-amber-50/30">
         <h3 class="text-sm font-bold text-amber-900 mb-4 flex items-center gap-2">
-          <i class="fas fa-image"></i> 视觉引擎 (Nano Banana)
+          <i class="fas fa-image"></i> 视觉引擎配置
         </h3>
         <div class="space-y-3">
           <input id="imageApiKey" type="password" placeholder="API Key (本地保存可选)" class="w-full px-4 py-2 rounded-lg border border-amber-100 focus:ring-2 focus:ring-amber-500 outline-none text-sm">
           <input id="imageApiBase" type="text" placeholder="Proxy Base URL (可选，默认 Google)" class="w-full px-4 py-2 rounded-lg border border-amber-100 focus:ring-2 focus:ring-amber-500 outline-none text-sm">
+          <input id="imageModelName" type="text" placeholder="自定义模型名 (默认: gemini-2.5-flash-image-preview)" class="w-full px-4 py-2 rounded-lg border border-amber-100 focus:ring-2 focus:ring-amber-500 outline-none text-sm">
           <label class="flex items-center gap-2 text-[11px] text-slate-600 select-none">
             <input id="rememberImageKey" type="checkbox" class="rounded border-slate-300">
-            记住 API Key（会存到浏览器 localStorage，不推荐在公共电脑使用）
+            记住 API Key（会存到浏览器 localStorage）
           </label>
         </div>
       </div>
@@ -331,7 +333,7 @@
             <div class="flex items-center justify-between mb-6 gap-3">
               <div>
                 <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight">Consistent Visual UGC</h3>
-                <p class="text-[10px] text-slate-400">由 Nano Banana 视觉引擎基于产品原图生成的买家秀图库</p>
+                <p class="text-[10px] text-slate-400">由视觉引擎基于产品原图生成的买家秀图库</p>
               </div>
               <div class="flex items-center gap-2">
                 <button id="cancelUgcBtn" class="hidden bg-white text-slate-700 px-4 py-2.5 rounded-full text-xs font-black border border-slate-200 hover:border-slate-300 transition-all">
@@ -461,11 +463,11 @@
     let generatedUgcImages = []; // { base64, index, prompt }
     let currentEditingIndex = null;
     let currentPreviewIndex = null;
-    let activePasteTarget = 'product'; // 'product' or 'taobao' or 'sizechart' - determines where pasted images go
+    let activePasteTarget = 'product'; // 'product' or 'taobao' or 'sizechart'
     let pendingEdits = new Map(); // Track background edit tasks
     let sizeChartImage = null; // { base64, mimeType }
     let translatedSizeChart = null; // base64 of result
-    const apiKey = ""; // 可由构建/运行时注入（纯静态页面无法真正隐藏密钥）
+    const apiKey = ""; // 可由构建/运行时注入
 
     // Abort controllers
     let textAbort = null;
@@ -501,7 +503,6 @@
       try {
         return JSON.parse(text);
       } catch (_) {
-        // 尝试从文本里截取最外层 JSON（防止模型加了说明文字）
         const first = text.indexOf('{');
         const last = text.lastIndexOf('}');
         if (first !== -1 && last !== -1 && last > first) {
@@ -526,7 +527,6 @@
         await navigator.clipboard.writeText(t);
         return;
       }
-      // fallback
       const ta = document.createElement('textarea');
       ta.value = t;
       ta.style.position = 'fixed';
@@ -557,7 +557,7 @@
     }
 
     function loadSettings() {
-      const configs = ['textApiBase', 'imageApiBase', 'rememberTextKey', 'rememberImageKey'];
+      const configs = ['textApiBase', 'imageApiBase', 'textModelName', 'imageModelName', 'rememberTextKey', 'rememberImageKey'];
       configs.forEach(id => {
         const saved = localStorage.getItem(id);
         if (saved !== null) {
@@ -565,7 +565,6 @@
           else $(id).value = saved;
         }
       });
-      // keys：只在用户明确勾选“记住”时读取/写入
       if ($('rememberTextKey').checked) {
         const k = localStorage.getItem('textApiKey');
         if (k) $('textApiKey').value = k;
@@ -579,6 +578,8 @@
     function saveSettings() {
       localStorage.setItem('textApiBase', $('textApiBase').value.trim());
       localStorage.setItem('imageApiBase', $('imageApiBase').value.trim());
+      localStorage.setItem('textModelName', $('textModelName').value.trim());
+      localStorage.setItem('imageModelName', $('imageModelName').value.trim());
       localStorage.setItem('rememberTextKey', String($('rememberTextKey').checked));
       localStorage.setItem('rememberImageKey', String($('rememberImageKey').checked));
 
@@ -600,8 +601,6 @@
         for (const item of items) {
           if (item.type && item.type.indexOf('image') !== -1) {
             const blob = item.getAsFile();
-            
-            // Route to appropriate handler based on active paste target
             if (activePasteTarget === 'taobao') {
               processTaobaoFile(blob);
               found = true;
@@ -628,63 +627,34 @@
     function setActivePasteTarget(target) {
       activePasteTarget = target;
       
-      // Update visual indicators - upload zones
       const productZone = $('dropZoneLabel');
       const taobaoZone = $('taobaoDropZoneLabel');
       const sizeChartZone = $('sizeChartDropZone');
       
-      // Update indicators
       const productIndicator = $('productPasteIndicator');
       const taobaoIndicator = $('taobaoPasteIndicator');
       const sizeChartIndicator = $('sizeChartPasteIndicator');
       
-      // Reset all zones
-      if (productZone) {
-        productZone.classList.remove('ring-2', 'ring-indigo-400', 'ring-offset-2');
-      }
-      if (taobaoZone) {
-        taobaoZone.classList.remove('ring-2', 'ring-amber-400', 'ring-offset-2');
-      }
-      if (sizeChartZone) {
-        sizeChartZone.classList.remove('ring-2', 'ring-teal-400', 'ring-offset-2');
-      }
-      if (productIndicator) {
-        productIndicator.classList.add('hidden');
-      }
-      if (taobaoIndicator) {
-        taobaoIndicator.classList.add('hidden');
-      }
-      if (sizeChartIndicator) {
-        sizeChartIndicator.classList.add('hidden');
-      }
+      if (productZone) productZone.classList.remove('ring-2', 'ring-indigo-400', 'ring-offset-2');
+      if (taobaoZone) taobaoZone.classList.remove('ring-2', 'ring-amber-400', 'ring-offset-2');
+      if (sizeChartZone) sizeChartZone.classList.remove('ring-2', 'ring-teal-400', 'ring-offset-2');
+      if (productIndicator) productIndicator.classList.add('hidden');
+      if (taobaoIndicator) taobaoIndicator.classList.add('hidden');
+      if (sizeChartIndicator) sizeChartIndicator.classList.add('hidden');
       
-      // Activate selected zone
       if (target === 'product') {
-        if (productZone) {
-          productZone.classList.add('ring-2', 'ring-indigo-400', 'ring-offset-2');
-        }
-        if (productIndicator) {
-          productIndicator.classList.remove('hidden');
-        }
+        if (productZone) productZone.classList.add('ring-2', 'ring-indigo-400', 'ring-offset-2');
+        if (productIndicator) productIndicator.classList.remove('hidden');
       } else if (target === 'taobao') {
-        if (taobaoZone) {
-          taobaoZone.classList.add('ring-2', 'ring-amber-400', 'ring-offset-2');
-        }
-        if (taobaoIndicator) {
-          taobaoIndicator.classList.remove('hidden');
-        }
+        if (taobaoZone) taobaoZone.classList.add('ring-2', 'ring-amber-400', 'ring-offset-2');
+        if (taobaoIndicator) taobaoIndicator.classList.remove('hidden');
       } else if (target === 'sizechart') {
-        if (sizeChartZone) {
-          sizeChartZone.classList.add('ring-2', 'ring-teal-400', 'ring-offset-2');
-        }
-        if (sizeChartIndicator) {
-          sizeChartIndicator.classList.remove('hidden');
-        }
+        if (sizeChartZone) sizeChartZone.classList.add('ring-2', 'ring-teal-400', 'ring-offset-2');
+        if (sizeChartIndicator) sizeChartIndicator.classList.remove('hidden');
       }
     }
 
     function initDragAndDrop() {
-      // Product image drop zone
       const dropZone = $('dropZoneLabel');
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropZone.addEventListener(eventName, e => {
@@ -696,7 +666,7 @@
       ['dragenter', 'dragover'].forEach(eventName => {
         dropZone.addEventListener(eventName, () => {
           dropZone.classList.add('drop-active');
-          setActivePasteTarget('product'); // Auto-switch paste target on drag
+          setActivePasteTarget('product');
         }, false);
       });
 
@@ -712,7 +682,7 @@
     
     function initTaobaoDragAndDrop() {
       const taobaoZone = $('taobaoDropZoneLabel');
-      if (!taobaoZone) return; // Exit if element doesn't exist yet
+      if (!taobaoZone) return; 
       
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         taobaoZone.addEventListener(eventName, e => {
@@ -724,7 +694,7 @@
       ['dragenter', 'dragover'].forEach(eventName => {
         taobaoZone.addEventListener(eventName, () => {
           taobaoZone.classList.add('drop-active');
-          setActivePasteTarget('taobao'); // Auto-switch paste target on drag
+          setActivePasteTarget('taobao');
         }, false);
       });
 
@@ -738,13 +708,11 @@
       }, false);
     }
 
-    // --- Image preprocessing (shrink) ---
     const MAX_IMAGES = 8;
-    const MAX_DIM = 1400; // good enough for analysis, reduces payload a lot
+    const MAX_DIM = 1400; 
     const JPEG_QUALITY = 0.86;
 
     async function fileToDownscaledDataUrl(file) {
-      // Prefer createImageBitmap for speed
       let bmp = null;
       try {
         bmp = await createImageBitmap(file);
@@ -778,14 +746,12 @@
         try { bmp.close(); } catch (_) {}
       }
 
-      // Use JPEG for smaller size unless original is PNG with transparency
       const isPng = (file.type || '').toLowerCase() === 'image/png';
       const outMime = isPng ? 'image/png' : 'image/jpeg';
       const dataUrl = canvas.toDataURL(outMime, isPng ? undefined : JPEG_QUALITY);
       return { dataUrl, mimeType: outMime };
     }
 
-    // --- Network Wrapper with retry + timeout + abort ---
     async function fetchJsonWithRetry(url, options, { maxRetries = 5, timeoutMs = 60000 } = {}) {
       for (let i = 0; i < maxRetries; i++) {
         const controller = new AbortController();
@@ -804,15 +770,12 @@
             return data;
           }
 
-          // Retry only for rate limit / transient server errors
           const retryable = response.status === 429 || (response.status >= 500 && response.status <= 599);
           let errMsg = `HTTP ${response.status}`;
           try {
             const errJson = await response.json();
             errMsg = errJson?.error?.message || errJson?.message || errMsg;
-          } catch (_) {
-            // ignore non-json
-          }
+          } catch (_) {}
 
           if (retryable && i < maxRetries - 1) {
             const delay = Math.min(8000, Math.pow(2, i) * 700);
@@ -838,7 +801,11 @@
       const isText = type === 'text';
       const engineKey = (isText ? $('textApiKey').value : $('imageApiKey').value) || apiKey;
       const engineBase = normalizeBaseUrl(isText ? $('textApiBase').value : $('imageApiBase').value);
-      const model = isText ? 'gemini-2.5-flash-preview-09-2025' : 'gemini-2.5-flash-image-preview';
+      
+      // Allow model override via user settings, fallback to preview defaults
+      const textModelName = $('textModelName').value.trim() || 'gemini-2.5-flash-preview-09-2025';
+      const imageModelName = $('imageModelName').value.trim() || 'gemini-2.5-flash-image-preview';
+      const model = isText ? textModelName : imageModelName;
 
       const key = requiredKeyOrThrow(engineKey, isText ? '文案引擎' : '视觉引擎');
       const url = `${engineBase}/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
@@ -861,7 +828,7 @@
       try {
         const { dataUrl, mimeType } = await fileToDownscaledDataUrl(file);
         const base64 = dataUrl.split(',')[1];
-        const previewUrl = dataUrl; // 直接用压缩后 dataURL 预览，避免 blob URL 管理复杂度
+        const previewUrl = dataUrl; 
         uploadedImages.push({ base64, mimeType, previewUrl });
         updatePreviews();
       } catch (e) {
@@ -944,7 +911,6 @@
       const loading = $('loading');
       const output = $('output');
 
-      // cancel previous
       if (textAbort) textAbort.abort('replaced');
       textAbort = new AbortController();
 
@@ -1012,7 +978,6 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
     function renderResults(data) {
       $('output').classList.remove('hidden');
 
-      // 1) Titles (safe render)
       $('titleContainer').innerHTML = '';
       (data.titles || []).forEach(t => {
         const card = el('div', 'card p-4');
@@ -1025,7 +990,6 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
         $('titleContainer').appendChild(card);
       });
 
-      // 2) Description (safe render)
       $('descEn').innerHTML = '';
       $('descZh').innerHTML = '';
       const enS = el('p', '', data?.desc?.en_s || '');
@@ -1043,12 +1007,10 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
       $('descZh').appendChild(el('p', '', `材质: ${data?.desc?.zh_f || ''}`));
       $('descZh').appendChild(el('p', '', `尺码信息: ${data?.desc?.zh_r || ''}`));
 
-      // 2.5) Style Description (3-section format)
       $('styleDescContainer').innerHTML = '';
       $('styleDescZhContainer').innerHTML = '<div class="text-center text-slate-400 text-xs py-4"><i class="fas fa-spinner fa-spin"></i> 正在翻译...</div>';
       const styleDesc = data?.styleDesc;
       if (styleDesc) {
-        // Store for translation
         window.currentStyleDesc = styleDesc;
         $('styleDescZhPanel').classList.remove('hidden');
         
@@ -1067,13 +1029,11 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
           $('styleDescContainer').appendChild(sectionDiv);
         });
         
-        // Auto-translate after rendering
         translateStyleDesc();
       } else {
         $('styleDescZhPanel').classList.add('hidden');
       }
 
-      // 3) Colors
       $('colorContainer').innerHTML = '';
       (data.colors || []).forEach(c => {
         const pill = el('div', 'bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2');
@@ -1083,23 +1043,18 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
         $('colorContainer').appendChild(pill);
       });
 
-      // 4) SEO
       $('seoTitle').innerText = data?.seo?.en_t || '';
       $('seoTitleZh').innerText = data?.seo?.zh_t || '';
       $('seoDesc').innerText = data?.seo?.en_d || '';
       $('seoDescZh').innerText = data?.seo?.zh_d || '';
 
-      // UGC Grid Init - Show config panel
       $('ugcConfigPanel').classList.remove('hidden');
       $('ugcGrid').innerHTML = '';
       generatedUgcImages = [];
       $('batchDownloadBtn').classList.add('hidden');
       
-      // Initialize taobao drag and drop and paste target switching (only once)
       setTimeout(() => {
         initTaobaoDragAndDrop();
-        
-        // Wire up taobao zone events if not already done
         const taobaoZone = $('taobaoDropZoneLabel');
         if (taobaoZone && !taobaoZone.dataset.initialized) {
           taobaoZone.addEventListener('click', () => setActivePasteTarget('taobao'));
@@ -1116,7 +1071,7 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
       }, 100);
     }
 
-    // --- Visual Engine Logic (Nano Banana) ---
+    // --- Visual Engine Logic (Nano Banana / Gemini Image) ---
     async function runWithConcurrency(items, limit, worker) {
       let idx = 0;
       const results = new Array(items.length);
@@ -1147,7 +1102,6 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
       if (!box) return;
       const src = `data:image/png;base64,${imgData}`;
       
-      // Store generated image
       generatedUgcImages[i] = { base64: imgData, index: i, prompt: prompt };
       
       box.innerHTML = `
@@ -1179,7 +1133,6 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
         downloadSingleImage(imgData, i);
       });
       
-      // Show batch download button if at least one image is generated
       $('batchDownloadBtn').classList.remove('hidden');
     }
 
@@ -1200,21 +1153,17 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
       ugcAbort = new AbortController();
       cancelBtn.onclick = () => ugcAbort.abort('user_cancel');
 
-      // Determine generation mode
       const useTaobaoMode = taobaoImages.length > 0;
       const quantity = parseInt($('ugcQuantity').value) || 5;
       
-      // Clear previous grid
       $('ugcGrid').innerHTML = '';
       generatedUgcImages = [];
       
       if (useTaobaoMode) {
-        // Mode 1: Westernize Taobao images
         status.innerText = "正在欧美化淘宝评论图片...";
         const total = taobaoImages.length;
         let done = 0;
 
-        // Create grid boxes
         for (let i = 0; i < total; i++) {
           const box = el('div', 'image-grid-item flex flex-col items-center justify-center border-dashed border-2 border-slate-100 text-slate-200');
           box.id = `ugc-box-${i}`;
@@ -1251,7 +1200,6 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
 
         if (!ugcAbort.signal.aborted) status.innerText = "欧美化完成！";
       } else {
-        // Mode 2: Generate from product images with prompts
         if (!ugcPrompts.length) {
           return showMessage("请先生成文案，得到 UGC 场景后再生成图库", "error");
         }
@@ -1259,14 +1207,12 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
         status.innerText = "视觉引擎正在合成高清买家秀图片...";
         const baseImg = uploadedImages[0];
         
-        // Generate specified quantity, cycling through prompts if needed
         const tasks = [];
         for (let i = 0; i < quantity; i++) {
           const promptIndex = i % ugcPrompts.length;
           tasks.push({ prompt: ugcPrompts[promptIndex], index: i });
         }
         
-        // Create grid boxes
         for (let i = 0; i < quantity; i++) {
           const box = el('div', 'image-grid-item flex flex-col items-center justify-center border-dashed border-2 border-slate-100 text-slate-200');
           box.id = `ugc-box-${i}`;
@@ -1338,7 +1284,6 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
 
       showMessage(`正在下载 ${validImages.length} 张图片...`);
       
-      // Download each image with a small delay to avoid browser blocking
       for (let i = 0; i < validImages.length; i++) {
         const img = validImages[i];
         const link = document.createElement('a');
@@ -1346,7 +1291,6 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
         link.download = `UGC_Image_${img.index + 1}_${Date.now()}.png`;
         link.click();
         
-        // Small delay between downloads
         if (i < validImages.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 300));
         }
@@ -1385,7 +1329,6 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
 
     function closeEditModal() {
       $('imageEditModal').classList.add('hidden');
-      // Don't reset currentEditingIndex if there's a pending edit
       if (!pendingEdits.has(currentEditingIndex)) {
         currentEditingIndex = null;
       }
@@ -1404,30 +1347,21 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
 
       const editLoading = $('editLoading');
       const applyBtn = $('applyEditBtn');
-      const editIndex = currentEditingIndex; // Capture for closure
+      const editIndex = currentEditingIndex; 
       
       editLoading.classList.remove('hidden');
       applyBtn.disabled = true;
 
-      // Mark as pending edit
       pendingEdits.set(editIndex, true);
-      
-      // Set the tile to loading state immediately
       setUgcTileLoading(editIndex);
 
-      // Start background generation
       const generateInBackground = async () => {
         try {
-          // Use the original prompt as base and add user's modification
           const modifiedPrompt = `${img.prompt}\n\nAdditional modifications: ${editPrompt}`;
-          
-          // Determine base image
           const baseImg = uploadedImages.length > 0 ? uploadedImages[0] : 
                          (taobaoImages.length > 0 ? taobaoImages[0] : null);
           
-          if (!baseImg) {
-            throw new Error("没有找到基础图片");
-          }
+          if (!baseImg) throw new Error("没有找到基础图片");
 
           const res = await callEngine('image', {
             contents: [{
@@ -1442,9 +1376,7 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
           const imgData = res?.candidates?.[0]?.content?.parts?.find(x => x?.inlineData)?.inlineData?.data;
           if (!imgData) throw new Error("生成失败");
 
-          // Update the image in the grid
           setUgcTileImage(editIndex, imgData, modifiedPrompt);
-          
           showMessage("图片已更新！");
         } catch (e) {
           setUgcTileFailed(editIndex);
@@ -1454,13 +1386,9 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
         }
       };
 
-      // Start generation in background
       generateInBackground();
-      
-      // Close modal immediately so user can continue
       showMessage("已开始生成，你可以关闭窗口继续其他操作");
       
-      // Reset UI but keep modal open briefly to show feedback
       setTimeout(() => {
         editLoading.classList.add('hidden');
         applyBtn.disabled = false;
@@ -1477,7 +1405,6 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
         const base64 = dataUrl.split(',')[1];
         sizeChartImage = { base64, mimeType, previewUrl: dataUrl };
         
-        // Show preview
         $('sizeChartPlaceholder').classList.add('hidden');
         $('sizeChartPreviewContainer').classList.remove('hidden');
         $('sizeChartPreview').src = dataUrl;
@@ -1495,21 +1422,18 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
       translatedSizeChart = null;
       window.sizeChartTranslatedData = null;
       
-      // Reset upload area
       $('sizeChartPlaceholder').classList.remove('hidden');
       $('sizeChartPreviewContainer').classList.add('hidden');
       $('sizeChartPreview').src = '';
       $('translateSizeChartBtn').disabled = true;
       $('clearSizeChartBtn').classList.add('hidden');
       
-      // Reset result area
       $('sizeChartResultPlaceholder').classList.remove('hidden');
       $('sizeChartResultLoading').classList.add('hidden');
       $('sizeChartTableWrapper').classList.add('hidden');
       $('sizeChartTable').innerHTML = '';
       $('sizeChartActions').classList.add('hidden');
       
-      // Reset data panel
       $('sizeChartDataPanel').classList.add('hidden');
       $('sizeChartDataContent').innerHTML = '';
       $('sizeChartProgress').style.width = '0%';
@@ -1523,20 +1447,17 @@ Each section MUST have exactly: 1 title + 2 description lines.`;
       const btn = $('translateSizeChartBtn');
       btn.disabled = true;
       
-      // Show loading
       $('sizeChartResultPlaceholder').classList.add('hidden');
       $('sizeChartResultLoading').classList.remove('hidden');
       $('sizeChartTableWrapper').classList.add('hidden');
       $('sizeChartActions').classList.add('hidden');
       $('sizeChartDataPanel').classList.add('hidden');
       
-      // Helper to update progress
       const updateProgress = (text, percent) => {
         $('sizeChartLoadingText').textContent = text;
         $('sizeChartProgress').style.width = percent + '%';
       };
 
-      // Step 1: Use text model to extract and translate data
       const extractPrompt = `Analyze this Chinese size chart image and extract ALL measurement data.
 
 CRITICAL: Values can be single numbers (88) or ranges (74-96). Preserve the exact format from the image.
@@ -1585,7 +1506,6 @@ TRANSLATION DICTIONARY:
 Return ONLY valid JSON, no explanation.`;
 
       try {
-        // Step 1: Extract data with text model
         updateProgress('正在识别尺码表数据...', 30);
         
         const extractRes = await callEngine('text', {
@@ -1599,10 +1519,8 @@ Return ONLY valid JSON, no explanation.`;
 
         const extractedText = extractRes?.candidates?.[0]?.content?.parts?.[0]?.text || '';
         
-        // Parse JSON from response
         let sizeData;
         try {
-          // Try to extract JSON from the response
           const jsonMatch = extractedText.match(/\{[\s\S]*\}/);
           if (!jsonMatch) throw new Error("无法解析尺码数据");
           sizeData = JSON.parse(jsonMatch[0]);
@@ -1616,10 +1534,8 @@ Return ONLY valid JSON, no explanation.`;
 
         updateProgress('正在生成表格...', 80);
 
-        // Helper function to convert cm value (single or range) to dual unit format
         const convertToDualUnit = (val) => {
           const str = String(val).trim();
-          // Check if it's a range (contains - but not negative)
           if (str.includes('-') && !str.startsWith('-')) {
             const parts = str.split('-').map(p => p.trim());
             if (parts.length === 2) {
@@ -1632,17 +1548,14 @@ Return ONLY valid JSON, no explanation.`;
               }
             }
           }
-          // Single value
           const num = parseFloat(str);
           if (!isNaN(num)) {
             const inches = (num / 2.54).toFixed(1);
             return `${str} cm / ${inches} in`;
           }
-          // Can't parse, return as-is
           return str;
         };
 
-        // Build HTML table
         let tableHtml = '<thead><tr><th>Size</th>';
         for (const size of sizeData.sizes) {
           tableHtml += `<th>${size}</th>`;
@@ -1659,7 +1572,6 @@ Return ONLY valid JSON, no explanation.`;
         }
         tableHtml += '</tbody>';
 
-        // Build the translation data preview (for verification)
         let dataPreviewHtml = `<div class="font-bold text-slate-700 mb-2">产品类型: ${sizeData.productType || '未知'}</div>`;
         dataPreviewHtml += `<div class="font-bold text-slate-700 mb-2">尺码: ${sizeData.sizes.join(' / ')}</div>`;
         dataPreviewHtml += `<div class="border-t border-slate-200 pt-2 mt-2">`;
@@ -1673,7 +1585,6 @@ Return ONLY valid JSON, no explanation.`;
         }
         dataPreviewHtml += `</div>`;
         
-        // Store for copy function (include converted values)
         window.sizeChartTranslatedData = {
           ...sizeData,
           tableHtml: tableHtml,
@@ -1683,7 +1594,6 @@ Return ONLY valid JSON, no explanation.`;
           }))
         };
 
-        // Show result
         updateProgress('完成！', 100);
         
         setTimeout(() => {
@@ -1692,7 +1602,6 @@ Return ONLY valid JSON, no explanation.`;
           $('sizeChartTableWrapper').classList.remove('hidden');
           $('sizeChartActions').classList.remove('hidden');
           
-          // Show data preview panel
           $('sizeChartDataContent').innerHTML = dataPreviewHtml;
           $('sizeChartDataPanel').classList.remove('hidden');
         }, 300);
@@ -1717,16 +1626,13 @@ Return ONLY valid JSON, no explanation.`;
       showMessage("正在生成图片...");
       
       try {
-        // Create a temporary container for better rendering
         const container = document.createElement('div');
         container.style.cssText = 'position: absolute; left: -9999px; background: white; padding: 20px;';
         
-        // Clone the table with inline styles for canvas rendering
         const tableClone = document.createElement('table');
         tableClone.style.cssText = 'border-collapse: collapse; font-family: Arial, sans-serif; background: white;';
         tableClone.innerHTML = table.innerHTML;
         
-        // Apply inline styles to all cells
         tableClone.querySelectorAll('th').forEach(th => {
           th.style.cssText = 'border: 1px solid #e5e5e5; padding: 12px 16px; background: #f8f9fa; font-weight: 600; color: #1a1a1a; text-align: center;';
         });
@@ -1741,7 +1647,6 @@ Return ONLY valid JSON, no explanation.`;
         container.appendChild(tableClone);
         document.body.appendChild(container);
         
-        // Use html2canvas if available, otherwise use a simple approach
         if (typeof html2canvas !== 'undefined') {
           const canvas = await html2canvas(container, { backgroundColor: '#ffffff', scale: 2 });
           const link = document.createElement('a');
@@ -1749,7 +1654,6 @@ Return ONLY valid JSON, no explanation.`;
           link.href = canvas.toDataURL('image/png');
           link.click();
         } else {
-          // Fallback: Generate image using canvas manually
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
           const data = window.sizeChartTranslatedData;
@@ -1764,15 +1668,12 @@ Return ONLY valid JSON, no explanation.`;
           canvas.width = cols * cellWidth;
           canvas.height = rows * cellHeight;
           
-          // Fill background
           ctx.fillStyle = '#ffffff';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           
-          // Draw header row
           ctx.fillStyle = '#f8f9fa';
           ctx.fillRect(0, 0, canvas.width, cellHeight);
           
-          // Draw grid lines
           ctx.strokeStyle = '#e5e5e5';
           ctx.lineWidth = 1;
           
@@ -1789,11 +1690,9 @@ Return ONLY valid JSON, no explanation.`;
             ctx.stroke();
           }
           
-          // Draw text
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           
-          // Header row
           ctx.fillStyle = '#1a1a1a';
           ctx.font = 'bold 14px Arial';
           ctx.fillText('Size', cellWidth / 2, cellHeight / 2);
@@ -1801,16 +1700,13 @@ Return ONLY valid JSON, no explanation.`;
             ctx.fillText(size, (i + 1.5) * cellWidth, cellHeight / 2);
           });
           
-          // Data rows
           ctx.font = '13px Arial';
           data.convertedMeasurements.forEach((m, rowIdx) => {
             const y = (rowIdx + 1.5) * cellHeight;
-            // First column (label)
             ctx.fillStyle = '#1a1a1a';
             ctx.font = 'bold 13px Arial';
             ctx.textAlign = 'left';
             ctx.fillText(m.label_en, 10, y);
-            // Data cells
             ctx.font = '12px Arial';
             ctx.fillStyle = '#333333';
             ctx.textAlign = 'center';
@@ -1837,7 +1733,6 @@ Return ONLY valid JSON, no explanation.`;
       const data = window.sizeChartTranslatedData;
       if (!data || !data.tableHtml) return showMessage("没有可复制的内容", "error");
       
-      // Build complete HTML table with inline styles (for Shopify)
       let html = '<table style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;">';
       html += '<thead><tr>';
       html += '<th style="border: 1px solid #e5e5e5; padding: 10px; background: #f8f9fa; font-weight: 600;">Size</th>';
@@ -1868,7 +1763,6 @@ Return ONLY valid JSON, no explanation.`;
       const data = window.sizeChartTranslatedData;
       if (!data) return showMessage("没有可复制的数据", "error");
       
-      // Format as readable text
       let text = `Product Type: ${data.productType || 'Unknown'}\n`;
       text += `Sizes: ${data.sizes.join(' / ')}\n\n`;
       
@@ -1891,7 +1785,6 @@ Return ONLY valid JSON, no explanation.`;
       const styleDesc = window.currentStyleDesc;
       if (!styleDesc) return;
       
-      // Build English text for translation
       let englishText = '';
       ['section1', 'section2', 'section3'].forEach((key, idx) => {
         const s = styleDesc[key];
@@ -1928,7 +1821,6 @@ OUTPUT FORMAT (JSON only, no markdown):
         const zhData = JSON.parse(jsonMatch[0]);
         window.currentStyleDescZh = zhData;
         
-        // Render Chinese translation
         const container = $('styleDescZhContainer');
         container.innerHTML = '';
         
@@ -1978,7 +1870,6 @@ OUTPUT FORMAT (JSON only, no markdown):
       const dropZone = $('sizeChartDropZone');
       if (!dropZone) return;
       
-      // Click to activate paste target
       dropZone.addEventListener('click', () => {
         setActivePasteTarget('sizechart');
       });
@@ -2024,7 +1915,6 @@ OUTPUT FORMAT (JSON only, no markdown):
       $('exportBtn').addEventListener('click', exportData);
       $('batchDownloadBtn').addEventListener('click', batchDownloadImages);
 
-      // Paste target switching - Product zone only (taobao zone initialized in renderResults)
       const productZone = $('dropZoneLabel');
       if (productZone) {
         productZone.addEventListener('click', () => setActivePasteTarget('product'));
@@ -2038,23 +1928,19 @@ OUTPUT FORMAT (JSON only, no markdown):
         });
       }
 
-      // Edit modal events
       $('closeEditModal').addEventListener('click', closeEditModal);
       $('cancelEditBtn').addEventListener('click', closeEditModal);
       $('applyEditBtn').addEventListener('click', applyImageEdit);
       
-      // Close modal on backdrop click
       $('imageEditModal').addEventListener('click', (e) => {
         if (e.target === $('imageEditModal')) closeEditModal();
       });
 
-      // Preview modal events
       $('closePreviewModal').addEventListener('click', closePreviewModal);
       $('imagePreviewModal').addEventListener('click', (e) => {
         if (e.target === $('imagePreviewModal')) closePreviewModal();
       });
       
-      // Preview modal action buttons
       $('previewDownloadBtn').addEventListener('click', () => {
         if (currentPreviewIndex !== null) {
           const img = generatedUgcImages[currentPreviewIndex];
@@ -2069,7 +1955,6 @@ OUTPUT FORMAT (JSON only, no markdown):
         }
       });
       
-      // Keyboard support for modals
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           if (!$('imagePreviewModal').classList.contains('hidden')) {
@@ -2081,7 +1966,6 @@ OUTPUT FORMAT (JSON only, no markdown):
         }
       });
 
-      // Size Chart events
       const sizeChartInput = $('sizeChartInput');
       if (sizeChartInput) {
         sizeChartInput.addEventListener('change', e => {
@@ -2097,7 +1981,6 @@ OUTPUT FORMAT (JSON only, no markdown):
       $('copySizeChartHtmlBtn')?.addEventListener('click', copySizeChartHtml);
       $('copySizeChartDataBtn')?.addEventListener('click', copySizeChartData);
       
-      // Initialize size chart drag and drop
       initSizeChartDragAndDrop();
 
       $('copyEnglishBtn').addEventListener('click', async () => {
@@ -2122,15 +2005,10 @@ OUTPUT FORMAT (JSON only, no markdown):
         try { await copyToClipboard(text); showMessage("风格描述已复制"); } catch (_) { showMessage("复制失败", "error"); }
       });
       
-      // Style Description translation events
       $('copyStyleZhBtn')?.addEventListener('click', copyStyleDescZh);
       
-      // Initialize with product zone as default
       setActivePasteTarget('product');
     };
   </script>
 </body>
 </html>
-
-
-
