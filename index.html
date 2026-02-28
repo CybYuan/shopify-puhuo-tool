@@ -812,10 +812,16 @@
       const model = isText ? 'gemini-3.1-pro-preview' : 'gemini-3.1-flash-image-preview';
 
       const key = requiredKeyOrThrow(engineKey, isText ? '文案引擎' : '视觉引擎');
-      const url = `${engineBase}/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
+      
+      // 【核心修复】移除 URL 上的 ?key=... 改为下面 Headers 里的 Bearer Token 鉴权
+      const url = `${engineBase}/v1beta/models/${model}:generateContent`;
+      
       return await fetchJsonWithRetry(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${key}` 
+        },
         body: JSON.stringify(payload),
         signal
       }, { maxRetries: 5, timeoutMs: isText ? 70000 : 120000 });
